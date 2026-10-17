@@ -52,6 +52,9 @@ Open http://localhost:5180 and choose **Build my plan**. Camera tracking needs `
   - Positioning guidance and an "In position" check.
   - Hedged, confidence-gated form cues and a reduced-range mode.
   - The camera can be turned off at any time.
+- **Workouts tab:** every exercise in the library to try on its own or mix into a free-play session (camera counting works for all of them). Anything that conflicts with your safety answers is shown but can't be started; free play earns no tokens.
+- **Hands-free workouts:** a 5-second "get into position" countdown after you press Start and between exercises, so you never have to walk back to the device.
+- **Nutrition (snap a meal):** photograph a plate and an on-device model (EfficientNet-B0 trained on Food-101, MIT, run with ONNX Runtime Web) suggests which of 101 dishes it is. You confirm or change it, pick a portion and log it. Estimates only; photos are never uploaded or stored; numbers can be hidden, and under-18s see an extra note about not using them as targets.
 - **Progress:**
   - Weekly consistency against your own plan; paused weeks are protected.
   - Activity minutes against WHO/CDC targets, with logging for other activity.
@@ -99,6 +102,7 @@ The rest of the CSP is in a `<meta>` tag injected at build time.
 
 ## Known limitations
 
+- Food recognition knows 101 dishes (Food-101 is biased toward Western dishes), can't judge portion size or hidden ingredients, and its calorie table is a rough average per serving. Treat results as starting points.
 - Rep counting, hold timing, movement detection and form cues were tuned on simulated landmarks. **Accuracy with real people is unmeasured**, especially for the newer detectors.
 - Exercise content is checked against public NHS guidance but **not clinician-reviewed**.
 - Data is in browser localStorage, which is **not encrypted at rest**.

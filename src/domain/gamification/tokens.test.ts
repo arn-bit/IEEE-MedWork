@@ -29,6 +29,10 @@ describe('earning tokens', () => {
     expect(sessionTokens(log('2026-10-12T09:00:00', { activeSeconds: 600, endedReason: 'stopped_user', completedExerciseIds: ['a', 'b'] }))).toBe(0);
   });
 
+  it('library free-play sessions earn no tokens', () => {
+    expect(sessionTokens(log('2026-10-12T09:00:00', { plannedSessionId: 'try-sit_to_stand' }))).toBe(0);
+  });
+
   it('a session under a minute with no symptoms earns nothing', () => {
     expect(sessionTokens(log('2026-10-12T09:00:00', { activeSeconds: 10 }))).toBe(0);
   });

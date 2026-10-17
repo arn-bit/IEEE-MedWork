@@ -42,6 +42,9 @@ const PATHS: Record<string, string> = {
   game: 'M6 9h4M8 7v4M15 10h.01M18 8h.01M7 5h10a5 5 0 0 1 5 5v2a5 5 0 0 1-8.6 3.5L12 14l-1.4 1.5A5 5 0 0 1 2 12v-2a5 5 0 0 1 5-5z',
   coin: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 7v10M9.5 9.5c0-1 1.2-1.7 2.5-1.7s2.5.7 2.5 1.7-1.2 1.5-2.5 1.8-2.5.8-2.5 1.8 1.2 1.7 2.5 1.7 2.5-.7 2.5-1.7',
   photo: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM3 16l5-5 4 4 3-3 6 6M9 9.5h.01',
+  dumbbell: 'M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12',
+  apple: 'M12 7c-2-2-6-1-6 4 0 4 2 9 4.5 9 1 0 1.2-.6 1.5-.6s.5.6 1.5.6C16 20 18 15 18 11c0-5-4-6-6-4zM12 7c0-2 1-3.500 3-4',
+  menu: 'M4 7h16M4 12h16M4 17h16',
   quiz: 'M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.5M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z',
 };
 
@@ -70,12 +73,18 @@ export function Icon({ name, size = 20, title, className }: { name: IconName | s
 }
 
 /** Verimove mark: a "V" that resolves into a check, with a small motion arc. */
+/**
+ * The mark: a person mid-stride whose body draws a check mark (movement you can verify). A coral head
+ * and speed arcs add energy; the tile is a teal-to-mint gradient. Pure SVG, no external files.
+ */
 export function LogoMark({ size = 30 }: { size?: number }) {
   return (
     <span className="brand-mark" style={{ width: size, height: size }} aria-hidden="true">
-      <svg width={size * 0.66} height={size * 0.66} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4.5 9.5 10.5 19 20 4.5" />
-        <path d="M3 5.5a8 8 0 0 1 5-2" strokeWidth={2} opacity={0.55} />
+      <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+        <path d="M5 17c3-1.2 6-1.4 9-.6M4 24c2.4-.8 4.8-.9 7.2-.3" stroke="#fff" strokeOpacity="0.55" strokeWidth="2.6" strokeLinecap="round" />
+        <path d="M13 26.5 20 34l15.5-17" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="37" cy="8.5" r="4.8" fill="#ff7a2f" />
+        <path d="M24.5 12.5c1.6-.9 3.2-1.2 4.8-1" stroke="#fff" strokeOpacity="0.55" strokeWidth="2.4" strokeLinecap="round" />
       </svg>
     </span>
   );

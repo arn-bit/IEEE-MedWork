@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation, Link } from 'react-router';
 import { Icon, LogoMark, Wordmark, type IconName } from './components/Icon';
 import { FocusedLayout, StatusBanners } from './components/Layouts';
@@ -14,6 +14,8 @@ import { ProfilePage } from './features/profile/ProfilePage';
 import { EvidencePage } from './features/profile/EvidencePage';
 import { AboutPage } from './features/profile/AboutPage';
 import { SummaryPage } from './features/profile/SummaryPage';
+import { LibraryPage } from './features/library/LibraryPage';
+import { NutritionPage } from './features/nutrition/NutritionPage';
 import { BalanceGame } from './features/challenges/games/BalanceGame';
 import { ReactionGame } from './features/challenges/games/ReactionGame';
 import { QuizGame } from './features/challenges/games/QuizGame';
@@ -29,13 +31,15 @@ import { useApplyLayout } from './hooks/useLayout';
 // branch (and the dynamic import) is removed and /dev/record falls through to "Page not found".
 const RecordTracePage = import.meta.env.DEV ? lazy(() => import('./features/dev/RecordTracePage').then((m) => ({ default: m.RecordTracePage }))) : null;
 
-const NAV: { to: string; label: string; short: string; icon: IconName }[] = [
-  { to: '/', label: 'Home', short: 'Home', icon: 'home' },
-  { to: '/plan', label: 'My Plan', short: 'Plan', icon: 'plan' },
-  { to: '/workout', label: 'Workout', short: 'Workout', icon: 'play' },
-  { to: '/progress', label: 'Progress', short: 'Progress', icon: 'chart' },
-  { to: '/challenges', label: 'Challenges', short: 'Challenges', icon: 'trophy' },
-  { to: '/profile', label: 'Profile & Health', short: 'Profile', icon: 'user' },
+const NAV: { to: string; label: string; short: string; icon: IconName; phone: boolean }[] = [
+  { to: '/', label: 'Home', short: 'Home', icon: 'home', phone: true },
+  { to: '/plan', label: 'My Plan', short: 'Plan', icon: 'plan', phone: true },
+  { to: '/workout', label: 'Today’s Workout', short: 'Today', icon: 'play', phone: true },
+  { to: '/workouts', label: 'Workouts', short: 'Workouts', icon: 'dumbbell', phone: true },
+  { to: '/nutrition', label: 'Nutrition', short: 'Nutrition', icon: 'apple', phone: false },
+  { to: '/progress', label: 'Progress', short: 'Progress', icon: 'chart', phone: false },
+  { to: '/challenges', label: 'Challenges', short: 'Challenges', icon: 'trophy', phone: false },
+  { to: '/profile', label: 'Profile & Health', short: 'Profile', icon: 'user', phone: false },
 ];
 
 function useApplySettings() {
@@ -78,6 +82,35 @@ function TokenChip() {
   );
 }
 
+/** Phone only: the tabs that don't fit the bottom bar. Closes when you go anywhere (derived from the path it opened on). */
+function MoreMenu({ tokens }: { tokens: number }) {
+  const { pathname } = useLocation();
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
+  const extra = NAV.filter((n) => !n.phone);
+  const active = extra.some((n) => pathname.startsWith(n.to));
+  return (
+    <div className="nav-more nav-phone-only">
+      <button type="button" className="nav-more-btn" aria-expanded={open} aria-haspopup="true" aria-controls="more-menu" data-active={active} onClick={() => setOpenAt(open ? null : pathname)}>
+        <Icon name="menu" size={22} />
+        <span className="nav-label-short">More</span>
+        {tokens > 0 ? <span className="nav-badge nav-badge-more" aria-hidden="true">{tokens}</span> : null}
+      </button>
+      {open ? (
+        <div id="more-menu" className="more-sheet" role="menu" aria-label="More">
+          {extra.map((n) => (
+            <NavLink key={n.to} to={n.to} role="menuitem" aria-label={n.label} onClick={() => setOpenAt(null)}>
+              <Icon name={n.icon} size={22} />
+              <span>{n.label}</span>
+              {n.to === '/challenges' && tokens > 0 ? <span className="more-tokens">{tokens} tokens</span> : null}
+            </NavLink>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function Shell({ children }: { children: ReactNode }) {
   const { tokens } = useStore();
   return (
@@ -93,7 +126,7 @@ function Shell({ children }: { children: ReactNode }) {
           <TokenChip />
         </div>
         {NAV.map((n) => (
-          <NavLink key={n.to} to={n.to} end={n.to === '/'} aria-label={n.label}>
+          <NavLink key={n.to} to={n.to} end={n.to === '/'} aria-label={n.label} className={n.phone ? undefined : 'nav-desktop-link'}>
             <Icon name={n.icon} size={22} />
             <span className="nav-label-short">{n.short}</span>
             <span className="nav-label-long">{n.label}</span>
@@ -104,6 +137,7 @@ function Shell({ children }: { children: ReactNode }) {
             ) : null}
           </NavLink>
         ))}
+        <MoreMenu tokens={tokens.balance} />
         <div className="nav-foot nav-desktop-only stack-sm">
           <span className="row" style={{ gap: 6 }}>
             <Icon name="lock" size={14} /> Stored only on this device
@@ -158,6 +192,8 @@ export function App() {
         <Route path="/" element={<Shell><RequireProfile><HomePage /></RequireProfile></Shell>} />
         <Route path="/plan" element={<Shell><RequireProfile><PlanPage /></RequireProfile></Shell>} />
         <Route path="/workout" element={<Shell><RequireProfile><WorkoutPage /></RequireProfile></Shell>} />
+        <Route path="/workouts" element={<Shell><RequireProfile><LibraryPage /></RequireProfile></Shell>} />
+        <Route path="/nutrition" element={<Shell><RequireProfile><NutritionPage /></RequireProfile></Shell>} />
         <Route path="/progress" element={<Shell><RequireProfile><ProgressPage /></RequireProfile></Shell>} />
         <Route path="/challenges" element={<Shell><RequireProfile><ChallengesPage /></RequireProfile></Shell>} />
         <Route path="/challenges/balance" element={<Shell><RequireProfile><BalanceGame /></RequireProfile></Shell>} />

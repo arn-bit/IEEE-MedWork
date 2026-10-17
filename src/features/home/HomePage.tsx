@@ -80,6 +80,18 @@ export function HomePage() {
         </Link>
       ) : null}
 
+      <Link to="/nutrition" className="nut-promo" aria-label="Open Nutrition: snap a meal for a quick estimate">
+        <span className="nut-promo-art" aria-hidden="true" />
+        <span className="nut-promo-copy">
+          <span className="eyebrow">New · Nutrition</span>
+          <strong className="nut-promo-title">Snap a meal, see what’s on your plate</strong>
+          <span className="small">Point your camera at food and get a quick estimate. It runs privately on your device, and your photo is never uploaded.</span>
+        </span>
+        <span className="btn btn-primary nut-promo-cta">
+          <Icon name="camera" size={16} /> Try it
+        </span>
+      </Link>
+
       <div className="home-grid">
         <section className="card card-feature today" aria-labelledby="today-h">
           <div className="stack today-copy">

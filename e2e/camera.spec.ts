@@ -32,7 +32,7 @@ test('camera permission granted: the local model loads and runs, with no externa
   await expect(page.getByText(/Model: MediaPipe Pose Landmarker Lite · running on (GPU|CPU)/)).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText('On-device only')).toBeVisible();
   // Start a rep-based set so the counter runs against the fake (person-free) video.
-  const start = page.getByRole('button', { name: /Start (set|timer)/ });
+  const start = page.getByRole('button', { name: /^Start/ });
   await expect(start).toBeEnabled({ timeout: 30_000 });
   await start.click();
   await expect(page.locator('.cam-wrap.cam-full')).toBeVisible();
@@ -51,7 +51,7 @@ test('camera on a camera-capable exercise reports "No body detected" for the syn
   await page.getByRole('button', { name: 'Use camera' }).click();
   // Every exercise has camera tracking now, so the first one will do.
   await expect(page.getByText(/Model: MediaPipe/)).toBeVisible({ timeout: 90_000 });
-  await page.getByRole('button', { name: /Start (set|timer)/ }).click();
+  await page.getByRole('button', { name: /^Start/ }).click();
   // The pill must say plainly that nothing is being counted (the fake camera shows no person).
   await expect(page.locator('.count-pill').first()).toContainText(/can’t see you|Not counting/, { timeout: 20_000 });
   await expect(page.locator('.count-pill').first()).toHaveAttribute('data-state', 'searching');
@@ -85,7 +85,7 @@ test('the camera can be turned off mid-session (stream fully stopped) and back o
     return !!s && s.getTracks().some((t) => t.readyState === 'live');
   });
   expect(await live()).toBe(true);
-  await page.getByText('More', { exact: true }).click();
+  await page.locator('.fs-more summary').click();
   await page.getByRole('button', { name: 'Turn camera off' }).click();
   await expect(page.getByText('Camera is off').first()).toBeVisible();
   await expect(page.locator('.cam-wrap video')).toHaveCount(0);
@@ -103,7 +103,7 @@ test('camera denied → clear message and a working manual alternative', async (
   await expect(page.getByText(/Camera permission was not granted/)).toBeVisible();
   await page.getByRole('button', { name: 'Continue with manual tracking' }).click();
   await expect(page.getByText('Switched to manual tracking')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Start (set|timer)/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Start/ })).toBeVisible();
 });
 
 test('no camera hardware → clear message and manual alternative', async ({ page }) => {
@@ -121,5 +121,5 @@ test('missing model file → actionable error, never a silent substitute', async
   await expect(page.getByText('Tracking model unavailable')).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText(/npm run setup:models/)).toBeVisible();
   await page.getByRole('button', { name: 'Continue with manual tracking' }).click();
-  await expect(page.getByRole('button', { name: /Start (set|timer)/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Start/ })).toBeVisible();
 });

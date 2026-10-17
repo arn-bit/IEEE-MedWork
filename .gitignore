@@ -6,4 +6,6 @@ playwright-report/
 # Model assets are reproducible with `npm run setup:models` (manifest is kept for verification)
 public/models/*.task
 public/mediapipe/wasm/
+public/models/food/*.onnx
+public/ort/
 .vitest/

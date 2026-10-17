@@ -543,3 +543,31 @@
   color: var(--warn);
   margin: 0;
 }
+
+.fs-countdown {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #1b1200;
+  background: #ffd166;
+  box-shadow: 0 0 0 6px rgb(255 209 102 / 0.3);
+  animation: fs-count-pulse 1s ease-in-out infinite;
+}
+@keyframes fs-count-pulse {
+  50% {
+    transform: scale(1.07);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fs-countdown {
+    animation: none;
+  }
+}
+:root[data-motion='reduce'] .fs-countdown {
+  animation: none;
+}

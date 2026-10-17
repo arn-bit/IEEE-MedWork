@@ -31,6 +31,7 @@ const FEATURES: { icon: IconName; title: string; text: string }[] = [
   { icon: 'book', title: 'Tell it your way', text: 'Tap quick answers or type in your own words. We show exactly what we understood and let you correct it.' },
   { icon: 'camera', title: 'Camera counting that stays put', text: 'On-device pose tracking counts reps, times holds and spots movement for every exercise. Video never leaves your device, and you can switch it off any time.' },
   { icon: 'calendar', title: 'Streaks that forgive', text: 'Consistency is weekly, against your own plan. Rest and sick days never break it, and you’re never nudged to push through symptoms.' },
+  { icon: 'apple', title: 'Snap-a-meal nutrition', text: 'Photograph your plate for a quick, private estimate. The food recognition runs on your device and your photos are never uploaded.' },
   { icon: 'eye', title: 'Built for every body', text: 'Seated plans, supported balance, large text, high contrast, reduced motion and keyboard-friendly everything.' },
   { icon: 'lock', title: 'Yours alone', text: 'No account. Optional passcode encryption, one-tap export and delete-everything. Works offline once loaded.' },
 ];

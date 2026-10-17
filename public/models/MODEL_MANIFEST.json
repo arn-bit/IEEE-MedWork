@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-17T00:16:31.720Z",
+  "generatedAt": "2026-10-17T21:29:09.638Z",
   "model": {
     "file": "pose_landmarker_lite.task",
     "url": "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task",
@@ -14,12 +14,40 @@
     "version": "1.0.1",
     "license": "Apache-2.0"
   },
+  "foodModel": {
+    "file": "efficientnet_b0_food101.onnx",
+    "url": "https://huggingface.co/spaces/LeooNic/food-101-classifier/resolve/main/models/efficientnet_b0_food101.onnx",
+    "name": "EfficientNet-B0 fine-tuned on Food-101 (ONNX)",
+    "license": "MIT (per the project README)",
+    "modelCard": "https://huggingface.co/spaces/LeooNic/food-101-classifier",
+    "bytes": 16537732,
+    "sha256": "a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179"
+  },
+  "foodRuntime": {
+    "package": "onnxruntime-web",
+    "license": "MIT"
+  },
   "files": [
     {
       "path": "public/models/pose_landmarker_lite.task",
       "bytes": 5777746,
       "sha256": "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
       "md5Base64": "BKdd33yBGsehpFIyZt19iA=="
+    },
+    {
+      "path": "public/models/food/efficientnet_b0_food101.onnx",
+      "bytes": 16537732,
+      "sha256": "a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179"
+    },
+    {
+      "path": "public/ort/ort-wasm-simd-threaded.wasm",
+      "bytes": 14239897,
+      "sha256": "3398c10d07d229bd91b364548e130e0e51a8e5704b88c7c083ebbeb78842dee2"
+    },
+    {
+      "path": "public/ort/ort-wasm-simd-threaded.mjs",
+      "bytes": 24381,
+      "sha256": "e13f7f94fc51b4ca72b12faeb1ee95f4ace6dfbc8939bc718aabdc0a27c4299b"
     },
     {
       "path": "public/mediapipe/wasm/vision_wasm_internal.js",

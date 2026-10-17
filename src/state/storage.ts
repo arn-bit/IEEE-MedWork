@@ -2,6 +2,7 @@ import type { Plan, Profile, SessionLog } from '../domain/types';
 import type { Pause, PersonalGoal, ScoreCard } from '../domain/gamification/rules';
 import type { ActivityEntry } from '../domain/plan/progression';
 import { normalizeProfile } from '../domain/profile';
+import type { MealEntry } from '../nutrition/foods';
 
 /**
  * Local-first persistence. Everything lives in this browser's localStorage under the `mw:` prefix.
@@ -26,6 +27,8 @@ export interface Settings {
   /** Short tone and vibration when a rep is counted, so you can tell it's counting. */
   repSound: boolean;
   repHaptics: boolean;
+  /** Hide calorie and macro numbers on the Nutrition page (always on for under-18s). */
+  hideNutritionNumbers: boolean;
 }
 
 export interface AppData {
@@ -42,6 +45,8 @@ export interface AppData {
   seenAchievements: string[];
   /** Other activity the user logged (walks, cycling…), counted toward weekly minutes. */
   activities: ActivityEntry[];
+  /** Meals the user logged on the Nutrition page. Photos are never stored, only the confirmed result. */
+  meals: MealEntry[];
 }
 
 export function defaultSettings(): Settings {
@@ -58,6 +63,7 @@ export function defaultSettings(): Settings {
     layout: 'auto',
     repSound: true,
     repHaptics: true,
+    hideNutritionNumbers: false,
   };
 }
 
@@ -75,6 +81,7 @@ export function defaultData(): AppData {
     personalGoal: null,
     seenAchievements: [],
     activities: [],
+    meals: [],
   };
 }
 
@@ -102,6 +109,9 @@ export function sanitize(raw: unknown): AppData | null {
     seenAchievements: Array.isArray(raw.seenAchievements) ? raw.seenAchievements.filter((x): x is string => typeof x === 'string') : [],
     activities: Array.isArray(raw.activities)
       ? (raw.activities.filter((a) => isObj(a) && typeof a.date === 'string' && typeof a.minutes === 'number') as unknown as ActivityEntry[])
+      : [],
+    meals: Array.isArray(raw.meals)
+      ? (raw.meals.filter((m) => isObj(m) && typeof m.id === 'string' && typeof m.name === 'string' && typeof m.kcal === 'number' && typeof m.at === 'string').slice(-2000) as unknown as MealEntry[])
       : [],
   };
 }

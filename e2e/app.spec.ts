@@ -101,6 +101,7 @@ test.describe('navigation and pages', () => {
       ['/', /Good (morning|afternoon|evening), Robin/],
       ['/plan', /days a week/],
       ['/workout', /Quick check-in|Choose a workout/],
+      ['/workouts', /Try any workout/],
       ['/progress', /Your progress/],
       ['/challenges', /Challenges & games/],
       ['/profile', /Robin/],
@@ -116,7 +117,7 @@ test.describe('navigation and pages', () => {
     }
     // Sidebar navigation works by clicking.
     await page.goto('/');
-    for (const name of ['My Plan', 'Workout', 'Progress', 'Challenges', 'Profile & Health', 'Home']) {
+    for (const name of ['My Plan', 'Today’s Workout', 'Workouts', 'Progress', 'Challenges', 'Profile & Health', 'Home']) {
       await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name, exact: true }).click();
       await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name, exact: true })).toHaveAttribute('aria-current', 'page');
     }
@@ -276,6 +277,17 @@ test.describe('gamification', () => {
     await page.getByLabel(/Add a friend’s code/).fill('MW1.bogus.code');
     await page.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(page.getByText(/does not look like|damaged|incomplete/)).toBeVisible();
+  });
+
+  test('workouts library: any allowed exercise can be tried on its own; free play is labelled and earns no tokens', async ({ page }) => {
+    await seed(page);
+    await page.goto('/workouts');
+    await expect(page.getByRole('heading', { level: 1, name: /Try any workout/ })).toBeVisible();
+    await page.getByLabel('Search').fill('sit');
+    await expect(page.getByRole('list', { name: 'Exercises' }).getByRole('listitem').first()).toBeVisible();
+    await page.getByRole('button', { name: 'Try now' }).first().click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Quick check-in' })).toBeVisible();
+    await expect(page.getByText(/Free play/).first()).toBeVisible();
   });
 
   test('reward games cost tokens: with none earned Play is disabled; the practice games and quiz stay free', async ({ page }) => {

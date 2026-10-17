@@ -10,6 +10,7 @@ export const PHOTOS = {
   walk: { src: '/img/walk.jpg', alt: 'A group walking together on a forest path' },
   run: { src: '/img/run.jpg', alt: 'Three runners silhouetted against a sunrise' },
   strength: { src: '/img/strength.jpg', alt: 'Dumbbells and a resistance band on a wooden shelf' },
+  food: { src: '/img/food.jpg', alt: 'A colourful bowl of tofu, corn, edamame and salad' },
   yoga: { src: '/img/yoga.jpg', alt: 'A person in a yoga pose at sunset' },
 } as const;
 

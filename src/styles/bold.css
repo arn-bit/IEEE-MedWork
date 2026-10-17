@@ -298,3 +298,19 @@
 .home-banner {
   background-position: center, center 14%;
 }
+
+/* Logo tile */
+.brand-mark {
+  border-radius: 28%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #075f4a 0%, #12b58c 100%);
+  box-shadow: 0 8px 18px -8px rgb(7 95 74 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+.brand-mark svg {
+  display: block;
+}
+.wordmark-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}

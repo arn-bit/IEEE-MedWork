@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useStore } from '../../state/store';
-import { DAY_NAMES } from '../../domain/plan/engine';
+import { DAY_NAMES, TRY_SESSION_PREFIX, buildTrySession } from '../../domain/plan/engine';
 import { getExercise } from '../../domain/exercises/library';
 import { triageSymptom, type SymptomReport } from '../../domain/safety/screening';
 import { ACHIEVEMENTS, earnedAchievements } from '../../domain/gamification/rules';
@@ -32,7 +32,12 @@ export function WorkoutPage() {
   const navigate = useNavigate();
   const plan = planResult?.ok ? planResult.plan : null;
   const sessions = useMemo(() => (plan ? plan.schedule.filter((s): s is PlannedSession => !!s) : []), [plan]);
-  const initial = sessions.find((s) => s.id === params.get('session')) ?? (plan?.schedule[todayIndex()] || null);
+  const tryParam = params.get('try');
+  const trySession = useMemo(
+    () => (tryParam && plan && data.profile ? buildTrySession(tryParam.split(',').filter(Boolean), data.profile, plan.screening.constraints) : null),
+    [tryParam, plan, data.profile],
+  );
+  const initial = trySession ?? sessions.find((s) => s.id === params.get('session')) ?? (plan?.schedule[todayIndex()] || null);
   const [selected, setSelected] = useState<PlannedSession | null>(initial);
   const [stage, setStage] = useState<Stage>(initial ? 'checkin' : 'choose');
   const [mode, setMode] = useState<'camera' | 'manual'>('manual');
@@ -134,7 +139,7 @@ export function WorkoutPage() {
     ];
     return (
       <div className="stack" style={{ maxWidth: 680 }}>
-        <PageHead eyebrow={`${DAY_NAMES[selected.dayIndex]} · about ${formatDuration(selected.estSeconds)}`} title="Quick check-in">
+        <PageHead eyebrow={`${selected.id.startsWith(TRY_SESSION_PREFIX) ? 'Free play' : DAY_NAMES[selected.dayIndex]} · about ${formatDuration(selected.estSeconds)}`} title="Quick check-in">
           How are you feeling right now?
         </PageHead>
         <div className="stack-sm">

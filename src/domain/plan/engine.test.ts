@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generatePlan, planEvidenceIds, validateProfile, estimateSeconds } from './engine';
+import { generatePlan, planEvidenceIds, validateProfile, estimateSeconds, tryability, buildTrySession, TRY_SESSION_PREFIX } from './engine';
 import { makeProfile } from '../profile';
 import { getExercise, EXERCISES } from '../exercises/library';
 import type { Plan, PlannedSession, Profile } from '../types';
@@ -270,5 +270,45 @@ describe('plans differ between people and between days', () => {
 
   it('every exercise in the library can be tracked by the camera', () => {
     for (const ex of EXERCISES) expect(ex.camera.supported, ex.id).toBe(true);
+  });
+});
+
+describe('free play from the library', () => {
+  const base = makeProfile({ displayName: 'T', ageYears: 40, goals: ['strength'], equipment: ['chair', 'wall'] });
+  const planOf = (p: Profile) => {
+    const r = generatePlan(p);
+    if (!r.ok) throw new Error('no plan');
+    return r.plan.screening.constraints;
+  };
+
+  it('a normal profile can try ordinary exercises', () => {
+    const c = planOf(base);
+    expect(tryability(getExercise('sit_to_stand')!, base, c).level).toBe('ok');
+  });
+
+  it('missing equipment or difficulty only warns; it never blocks', () => {
+    const c = planOf({ ...base, equipment: [] });
+    const needsChair = EXERCISES.find((e) => e.equipment.includes('chair'))!;
+    expect(['ok', 'warn']).toContain(tryability(needsChair, { ...base, equipment: [] }, c).level);
+  });
+
+  it('safety constraints block: a seated-only profile cannot try standing exercises', () => {
+    const p = { ...base, accessibility: { ...base.accessibility, seatedOnly: true } };
+    const c = planOf(p);
+    const standing = EXERCISES.find((e) => e.position !== 'seated')!;
+    const t = tryability(standing, p, c);
+    expect(t.level).toBe('blocked');
+  });
+
+  it('builds a free-play session with a try- id, drops blocked exercises, and returns null if nothing is allowed', () => {
+    const p = { ...base, accessibility: { ...base.accessibility, seatedOnly: true } };
+    const c = planOf(p);
+    const seated = EXERCISES.find((e) => e.position === 'seated')!;
+    const standing = EXERCISES.find((e) => e.position !== 'seated')!;
+    const s = buildTrySession([seated.id, standing.id], p, c)!;
+    expect(s.id.startsWith(TRY_SESSION_PREFIX)).toBe(true);
+    expect(s.items.map((i) => i.exerciseId)).toEqual([seated.id]);
+    expect(buildTrySession([standing.id], p, c)).toBeNull();
+    expect(buildTrySession(['not_real'], p, c)).toBeNull();
   });
 });

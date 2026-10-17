@@ -41,7 +41,7 @@ export function AboutPage() {
       <section className="card stack-sm">
         <h2>Images</h2>
         <p className="small">
-          Photographs are from Unsplash and used under the Unsplash License. They are copied into this app, so showing them never contacts another site. The exercise figures and illustrations are original.
+          Photographs are from Unsplash and used under the Unsplash License. They are copied into this app, so showing them never contacts another site. The exercise figures and illustrations are original. Food recognition uses an EfficientNet-B0 model fine-tuned on Food-101 (MIT license, from the open-source food-101-classifier project) with ONNX Runtime Web (MIT), both served from this app and run on your device. Calories come from a rough per-serving table, so they are estimates.
         </p>
       </section>
 

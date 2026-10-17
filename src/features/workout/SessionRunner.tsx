@@ -14,7 +14,10 @@ import { describePrescription } from '../plan/PlanPage';
 import { detectorInfo } from '../../pose/detectors';
 import type { CounterSnapshot, RangeMode } from '../../pose/counters';
 
-type Phase = 'intro' | 'work' | 'rest';
+type Phase = 'intro' | 'getready' | 'work' | 'rest';
+
+/** Seconds to get into position after pressing Start, and between exercises, so you never have to go back to the device. */
+const GET_READY_SECONDS = 5;
 
 /** Wall-clock source for the workout ticker (kept outside the component so render stays pure). */
 const nowMs = () => performance.now();
@@ -78,6 +81,7 @@ export function SessionRunner({
   const [popKey, setPopKey] = useState(0);
   const lastTick = useRef<number | null>(null);
   const holdingRef = useRef(false);
+  const lastBeep = useRef(0);
 
   const item: PlannedItem | undefined = items[idx];
   const ex = item ? getExercise(item.exerciseId)! : null;
@@ -121,6 +125,21 @@ export function SessionRunner({
     },
     [activeSeconds, completed, onFinish, session.id, sets],
   );
+
+  /** Camera + full screen: count down hands-free. Otherwise wait for the Start button. */
+  const enterNext = () => {
+    if (fullView) {
+      setPhase('getready');
+      setRemaining(GET_READY_SECONDS);
+      lastBeep.current = GET_READY_SECONDS + 1;
+    } else setPhase('intro');
+  };
+  const startGetReady = () => {
+    primeAudio();
+    setPhase('getready');
+    setRemaining(GET_READY_SECONDS);
+    lastBeep.current = GET_READY_SECONDS + 1;
+  };
 
   const beginWork = () => {
     if (!rx) return;
@@ -166,8 +185,8 @@ export function SessionRunner({
       }
       setIdx((i) => i + 1);
       setSetNo(0);
-      setPhase('intro');
-      say('Exercise done.');
+      enterNext();
+      say(`Exercise done. Next: ${getExercise(items[idx + 1]!.exerciseId)?.name ?? 'next exercise'}. Get into position.`);
   };
 
   // Active-time + countdown ticker (timestamp based, pause-aware). Transitions happen here, not in effects.
@@ -179,6 +198,18 @@ export function SessionRunner({
       if (phase === 'work') {
         setActiveSeconds((s) => s + dt);
         setSetSeconds((s) => s + dt);
+      }
+      if (phase === 'getready') {
+        const r = Math.max(0, remaining - dt);
+        setRemaining(r);
+        const whole = Math.ceil(r);
+        if (whole < lastBeep.current && whole > 0) {
+          lastBeep.current = whole;
+          playTone('rep', sound);
+          if (whole <= 3) speak(String(whole), voice);
+        }
+        if (r <= 0) beginWork();
+        return;
       }
       if (phase === 'rest' || (phase === 'work' && !isReps)) {
         const credit = phase === 'rest' || !timeCamera || !gateOn || holdingRef.current ? dt : 0;
@@ -234,7 +265,7 @@ export function SessionRunner({
   const restartExercise = () => {
     setSets((s) => s.filter((l) => l.exerciseId !== ex?.id));
     setSetNo(0);
-    setPhase('intro');
+    enterNext();
     setCamCount(0);
     setOffset(0);
   };
@@ -243,7 +274,7 @@ export function SessionRunner({
     else {
       setIdx((i) => i + 1);
       setSetNo(0);
-      setPhase('intro');
+      enterNext();
     }
   };
   const adjust = (d: number) => {
@@ -273,14 +304,18 @@ export function SessionRunner({
     [],
   );
 
-  const overall = useMemo(() => (totalItems ? (idx + (phase === 'intro' ? 0 : 0.5)) / totalItems : 0), [idx, phase, totalItems]);
+  const pre = phase === 'intro' || phase === 'getready';
+  const overall = useMemo(() => (totalItems ? (idx + (phase === 'intro' || phase === 'getready' ? 0 : 0.5)) / totalItems : 0), [idx, phase, totalItems]);
 
   // ───── What is the app doing right now? (the "am I being counted?" answer) ─────
   const info = detectorId ? detectorInfo(detectorId) : null;
   const holdingNow = !!snap && snap.holding && phase === 'work' && !paused;
   let state: CountState;
   let stateText: string;
-  if (phase === 'intro') {
+  if (phase === 'getready') {
+    state = 'ready';
+    stateText = `Get into position. Starting in ${Math.ceil(remaining)}…`;
+  } else if (phase === 'intro') {
     state = 'ready';
     stateText = tracked ? 'Press Start. Counting begins when you do.' : 'Press Start when you’re ready.';
   } else if (paused) {
@@ -388,7 +423,7 @@ export function SessionRunner({
           </div>
         </div>
 
-        {phase !== 'intro' ? (
+        {!pre ? (
           <div className="fs-mid">
             {statusPill}
             {gauge}
@@ -397,7 +432,7 @@ export function SessionRunner({
           </div>
         ) : null}
 
-        {phase === 'intro' ? (
+        {pre ? (
           <div className="fs-sheet" role="group" aria-label="Get ready">
             <div className="fs-sheet-fig" aria-hidden="true">
               <FigureDemo exerciseId={ex.id} size="md" />
@@ -411,14 +446,28 @@ export function SessionRunner({
                 <strong>If you feel any discomfort, stop.</strong> General fitness guidance, not medical advice.
               </p>
               {statusPill}
-              <div className="row">
-                <button className="btn btn-primary btn-lg" onClick={beginWork} disabled={trackerStatus !== 'running'}>
-                  <Icon name="play" size={18} /> {trackerStatus === 'running' ? `Start ${rx.kind === 'reps' ? 'set' : 'timer'}` : 'Getting the camera ready…'}
-                </button>
-                <button className="btn btn-ghost fs-ghost" onClick={skipExercise}>
-                  <Icon name="skip" size={16} /> Skip
-                </button>
-              </div>
+              {phase === 'getready' ? (
+                <div className="row" style={{ alignItems: 'center' }}>
+                  <div className="fs-countdown" role="timer" aria-label={`Starting in ${Math.ceil(remaining)} seconds`}>
+                    {Math.max(1, Math.ceil(remaining))}
+                  </div>
+                  <button className="btn btn-primary" onClick={beginWork}>
+                    Start now
+                  </button>
+                  <button className="btn btn-ghost fs-ghost" onClick={skipExercise}>
+                    <Icon name="skip" size={16} /> Skip
+                  </button>
+                </div>
+              ) : (
+                <div className="row">
+                  <button className="btn btn-primary btn-lg" onClick={startGetReady} disabled={trackerStatus !== 'running'}>
+                    <Icon name="play" size={18} /> {trackerStatus === 'running' ? `Start, ${GET_READY_SECONDS} s to get ready` : 'Getting the camera ready…'}
+                  </button>
+                  <button className="btn btn-ghost fs-ghost" onClick={skipExercise}>
+                    <Icon name="skip" size={16} /> Skip
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ) : null}
@@ -453,7 +502,7 @@ export function SessionRunner({
                 </button>
               </>
             ) : null}
-            {phase !== 'intro' ? (
+            {!pre ? (
               <>
                 <button className="fs-btn fs-btn-wide" onClick={() => setPaused((p) => !p)} aria-pressed={paused}>
                   <Icon name={paused ? 'play' : 'pause'} size={18} /> {paused ? 'Resume' : 'Pause'}
@@ -468,12 +517,12 @@ export function SessionRunner({
                 <Icon name="plus" size={18} /> More
               </summary>
               <div className="fs-more-panel">
-                {phase !== 'intro' ? (
+                {!pre ? (
                   <button className="btn btn-secondary btn-sm" onClick={restartExercise}>
                     <Icon name="restart" size={14} /> Restart exercise
                   </button>
                 ) : null}
-                {phase !== 'intro' ? (
+                {!pre ? (
                   <button className="btn btn-secondary btn-sm" onClick={skipExercise}>
                     <Icon name="skip" size={14} /> Skip exercise
                   </button>
@@ -492,13 +541,13 @@ export function SessionRunner({
                     </span>
                   </label>
                 ) : null}
-                <button className="btn btn-secondary btn-sm" onClick={() => setFullscreen(false)}>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setFullscreen(false); if (phase === 'getready') setPhase('intro'); }}>
                   Exit full screen layout
                 </button>
                 <button className="btn btn-secondary btn-sm" onClick={toggleBrowserFullscreen}>
                   Browser full screen
                 </button>
-                <button className="btn btn-secondary btn-sm" onClick={() => setCameraOn(false)}>
+                <button className="btn btn-secondary btn-sm" onClick={() => { setCameraOn(false); if (phase === 'getready') setPhase('intro'); }}>
                   <Icon name="camera" size={14} /> Turn camera off
                 </button>
                 <button className="btn btn-ghost btn-sm" onClick={() => finish('just_stop')}>

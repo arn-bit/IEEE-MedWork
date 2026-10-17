@@ -4,7 +4,7 @@
  * or sees personal data (that lives in localStorage) and never contacts another origin.
  */
 const CACHE = 'mw-app-v1';
-const CACHE_FIRST = [/^\/assets\//, /^\/models\//, /^\/mediapipe\//, /^\/favicon\.svg$/];
+const CACHE_FIRST = [/^\/assets\//, /^\/models\//, /^\/mediapipe\//, /^\/ort\//, /^\/img\//, /^\/favicon\.svg$/];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/favicon.svg'])).then(() => self.skipWaiting()));

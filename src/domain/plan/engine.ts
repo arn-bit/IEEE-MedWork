@@ -684,3 +684,58 @@ export function planEvidenceIds(plan: Plan): string[] {
   );
   return [...ids];
 }
+
+
+// ───────────────────────────── Free play: trying any exercise from the library ─────────────────────────────
+
+export type Tryability = { level: 'ok' } | { level: 'warn'; reason: string } | { level: 'blocked'; reason: string };
+
+/** Reasons an exercise was left out of the plan that are about YOUR SAFETY and so can never be overridden. */
+const HARD_REASONS = [
+  'Not a seated exercise',
+  'Position excluded',
+  'Mainly loads an area',
+  'excluded by clinician restriction',
+  'Weights excluded',
+  'No external weights',
+  'Unsupported balance excluded',
+  'Not recommended under age',
+  'Requires grip',
+];
+
+/**
+ * Can this person try this exercise from the library? Preferences, equipment, location and difficulty
+ * only produce a warning (they know their own home). Anything tied to a safety rule, a restriction
+ * or age is blocked, with the reason shown.
+ */
+export function tryability(ex: Exercise, profile: Profile, c: Constraints): Tryability {
+  const why = exclusionReason(ex, profile, c);
+  if (!why) return { level: 'ok' };
+  if (HARD_REASONS.some((h) => why.includes(h))) return { level: 'blocked', reason: why };
+  return { level: 'warn', reason: why };
+}
+
+export const TRY_SESSION_PREFIX = 'try-';
+
+/** A one-off session built from exercises you picked. Blocked exercises are dropped. */
+export function buildTrySession(ids: string[], profile: Profile, c: Constraints): PlannedSession | null {
+  const items: PlannedItem[] = [];
+  for (const id of ids.slice(0, 12)) {
+    const ex = getExercise(id);
+    if (!ex || tryability(ex, profile, c).level === 'blocked') continue;
+    const prescription = prescribe(ex, profile, c, 'main', false);
+    items.push({ exerciseId: id, block: 'main', prescription, estSeconds: estimateSeconds(prescription), reasons: ['You chose to try this from the library.'] });
+  }
+  if (items.length === 0) return null;
+  const est = items.reduce((a, i) => a + i.estSeconds, 0);
+  return {
+    id: `${TRY_SESSION_PREFIX}${items.map((i) => i.exerciseId).join('+')}`,
+    dayIndex: 0,
+    title: 'Free play',
+    focus: items.length === 1 ? (getExercise(items[0]!.exerciseId)?.name ?? 'Free play') : `Free play · ${items.length} exercises`,
+    items,
+    estSeconds: est,
+    limitSeconds: est,
+    notes: ['This is a free-play session from the library, outside your plan. It doesn’t earn tokens.'],
+  };
+}

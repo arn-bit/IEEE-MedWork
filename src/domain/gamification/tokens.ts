@@ -1,6 +1,8 @@
 import type { SessionLog } from '../types';
 import { countsAsSession, startOfWeek, weekKey, weekSummaries, type Pause } from './rules';
 
+const FREE_PLAY_PREFIX = 'try-';
+
 /**
  * Token economy: workouts earn tokens, tokens buy plays of the minigames.
  *
@@ -37,6 +39,7 @@ export const GAME_COSTS: Record<GameId, number> = {
 export function sessionTokens(s: SessionLog): number {
   if (!countsAsSession(s)) return 0;
   if (s.endedReason !== 'completed') return 0;
+  if (s.plannedSessionId?.startsWith(FREE_PLAY_PREFIX)) return 0; // library free play never earns tokens
   return TOKEN_RULES.base + Math.min(TOKEN_RULES.maxExerciseBonus, s.completedExerciseIds.length * TOKEN_RULES.perExercise);
 }
 

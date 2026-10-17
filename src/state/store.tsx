@@ -1,3 +1,4 @@
+import type { MealEntry } from '../nutrition/foods';
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import { generatePlan } from '../domain/plan/engine';
 import { emptyHealth } from '../domain/profile';
@@ -21,6 +22,8 @@ type Action =
   | { type: 'seenAchievements'; ids: string[] }
   | { type: 'addActivity'; entry: ActivityEntry }
   | { type: 'removeActivity'; id: string }
+  | { type: 'addMeal'; entry: MealEntry }
+  | { type: 'removeMeal'; id: string }
   | { type: 'spendTokens'; game: string; cost: number; at: string }
   | { type: 'replaceAll'; data: AppData }
   | { type: 'reset' };
@@ -60,6 +63,10 @@ function reducer(state: AppData, a: Action): AppData {
       return { ...state, activities: [...state.activities, a.entry] };
     case 'removeActivity':
       return { ...state, activities: state.activities.filter((x) => x.id !== a.id) };
+    case 'addMeal':
+      return { ...state, meals: [...state.meals.slice(-1999), a.entry] };
+    case 'removeMeal':
+      return { ...state, meals: state.meals.filter((m) => m.id !== a.id) };
     case 'spendTokens': {
       const t = tokenSummary(state.sessions, state.profile?.daysPerWeek ?? 3, state.restChoices, state.games.tokensSpent);
       if (a.cost < 0 || t.balance < a.cost) return state; // never spend what you don't have
@@ -96,6 +103,8 @@ interface StoreValue {
   importData(data: AppData): void;
   addActivity(entry: ActivityEntry): void;
   removeActivity(id: string): void;
+  addMeal(entry: MealEntry): void;
+  removeMeal(id: string): void;
   deleteEverything(): Promise<void>;
 }
 
@@ -188,6 +197,8 @@ export function StoreProvider({
     importData: (data) => dispatch({ type: 'replaceAll', data }),
     addActivity: (entry) => dispatch({ type: 'addActivity', entry }),
     removeActivity: (id) => dispatch({ type: 'removeActivity', id }),
+    addMeal: (entry) => dispatch({ type: 'addMeal', entry }),
+    removeMeal: (id) => dispatch({ type: 'removeMeal', id }),
     deleteEverything: async () => {
       await deleteAllData();
       skipSave.current = true; // don't immediately re-write defaults

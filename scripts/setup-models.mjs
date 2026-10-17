@@ -34,6 +34,20 @@ const MODEL = {
   docs: 'https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker',
 };
 
+const FOOD = {
+  file: 'efficientnet_b0_food101.onnx',
+  url: 'https://huggingface.co/spaces/LeooNic/food-101-classifier/resolve/main/models/efficientnet_b0_food101.onnx',
+  name: 'EfficientNet-B0 fine-tuned on Food-101 (ONNX)',
+  license: 'MIT (per the project README)',
+  modelCard: 'https://huggingface.co/spaces/LeooNic/food-101-classifier',
+  bytes: 16537732,
+  // Pinned: the download is refused unless it matches this SHA-256.
+  sha256: 'a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179',
+};
+const ortPkgDir = join(root, 'node_modules', 'onnxruntime-web', 'dist');
+const ortOutDir = join(root, 'public', 'ort');
+const ORT_FILES = ['ort-wasm-simd-threaded.wasm', 'ort-wasm-simd-threaded.mjs'];
+
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 const md5b64 = (buf) => createHash('md5').update(buf).digest('base64');
 
@@ -84,6 +98,36 @@ async function downloadModel() {
   return { buf, md5: expectedMd5, lastModified: res.headers.get('last-modified') };
 }
 
+async function downloadFood() {
+  const dir = join(modelsDir, 'food');
+  mkdirSync(dir, { recursive: true });
+  const dest = join(dir, FOOD.file);
+  if (existsSync(dest)) {
+    const have = readFileSync(dest);
+    if (have.length === FOOD.bytes && sha256(have) === FOOD.sha256) {
+      console.log(`[models] ${FOOD.file} already present and verified`);
+      return have;
+    }
+  }
+  const res = await fetch(FOOD.url);
+  if (!res.ok) fail(`download failed: HTTP ${res.status} from ${FOOD.url}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (buf.length !== FOOD.bytes || sha256(buf) !== FOOD.sha256) fail('food model does not match the pinned size/SHA-256; refusing to use it');
+  writeFileSync(dest, buf);
+  console.log(`[models] downloaded ${FOOD.file} (${buf.length} bytes), SHA-256 verified`);
+  return buf;
+}
+
+function copyOrt() {
+  mkdirSync(ortOutDir, { recursive: true });
+  for (const f of ORT_FILES) {
+    const src = join(ortPkgDir, f);
+    if (!existsSync(src)) fail(`${src} not found. Run \`npm install\` first.`);
+    copyFileSync(src, join(ortOutDir, f));
+  }
+  console.log(`[models] copied ${ORT_FILES.length} ONNX Runtime Web files`);
+}
+
 function copyWasm() {
   const src = join(pkgDir, 'wasm');
   if (!existsSync(src)) fail('node_modules/@mediapipe/tasks-vision/wasm not found. Run `npm install` first.');
@@ -102,8 +146,15 @@ async function setup() {
   const pkgVersion = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')).version;
   const { buf, md5, lastModified } = await downloadModel();
   const wasmFiles = copyWasm();
+  const foodBuf = await downloadFood();
+  copyOrt();
   const files = [
     { path: `public/models/${MODEL.file}`, bytes: buf.length, sha256: sha256(buf), md5Base64: md5 },
+    { path: `public/models/food/${FOOD.file}`, bytes: foodBuf.length, sha256: sha256(foodBuf) },
+    ...ORT_FILES.map((f) => {
+      const b = readFileSync(join(ortOutDir, f));
+      return { path: `public/ort/${f}`, bytes: b.length, sha256: sha256(b) };
+    }),
     ...wasmFiles.map((f) => {
       const b = readFileSync(join(wasmOutDir, f));
       return { path: `public/mediapipe/wasm/${f}`, bytes: statSync(join(wasmOutDir, f)).size, sha256: sha256(b) };
@@ -113,6 +164,8 @@ async function setup() {
     generatedAt: new Date().toISOString(),
     model: { ...MODEL, serverLastModified: lastModified },
     runtime: { package: '@mediapipe/tasks-vision', version: pkgVersion, license: 'Apache-2.0' },
+    foodModel: { ...FOOD },
+    foodRuntime: { package: 'onnxruntime-web', license: 'MIT' },
     files,
   };
   writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
