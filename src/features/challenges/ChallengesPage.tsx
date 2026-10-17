@@ -20,11 +20,16 @@ import { GAME_COSTS, TOKEN_RULES, garden } from '../../domain/gamification/token
 import { Garden } from './Garden';
 import { Scene } from '../../components/Illustrations';
 
-const GAMES = [
-  { to: '/challenges/balance', icon: 'balance', title: 'Steady Stance', cost: GAME_COSTS.balance, desc: 'A supported balance hold with levels from seated to single-leg. Self-timed, no camera.' },
-  { to: '/challenges/reaction', icon: 'game', title: 'Reaction Reach', cost: GAME_COSTS.reaction, desc: 'Tap or press keys as targets appear. Gentle coordination practice; works seated.' },
-  { to: '/challenges/memory', icon: 'spark', title: 'Memory Match', cost: GAME_COSTS.memory, desc: 'Pair up exercise pictures. Calm, no timer, great for seated play.' },
-  { to: '/challenges/quiz', icon: 'quiz', title: 'Move Smart Quiz', cost: 0, desc: 'Short questions on activity guidance. Every answer links to its source. Always free.' },
+const REWARDS = [
+  { to: '/challenges/puzzle', icon: 'photo', title: 'Photo Puzzle', cost: GAME_COSTS.puzzle, desc: 'Slide the pieces back into a photo. Relaxing, with no timer.' },
+  { to: '/challenges/memory', icon: 'spark', title: 'Memory Match', cost: GAME_COSTS.memory, desc: 'Find the matching pairs of pictures.' },
+  { to: '/challenges/echo', icon: 'game', title: 'Colour Echo', cost: GAME_COSTS.simon, desc: 'Watch the colours light up, then repeat the pattern.' },
+] as const;
+
+const PRACTICE = [
+  { to: '/challenges/balance', icon: 'balance', title: 'Steady Stance', desc: 'A supported balance hold with levels from seated to single-leg. Self-timed, no camera.' },
+  { to: '/challenges/reaction', icon: 'game', title: 'Reaction Reach', desc: 'Tap or press keys as targets appear. Gentle coordination practice; works seated.' },
+  { to: '/challenges/quiz', icon: 'quiz', title: 'Move Smart Quiz', desc: 'Short questions on activity guidance. Every answer links to its source.' },
 ] as const;
 
 export function ChallengesPage() {
@@ -65,7 +70,7 @@ export function ChallengesPage() {
             </span>
             <div>
               <h2 id="wallet-h" style={{ margin: 0 }}>
-                <span className="num">{tokens.balance}</span> tokens
+                <span className="num wallet-count">{tokens.balance}</span> tokens
               </h2>
               <span className="small muted">
                 {tokens.earned} earned · {tokens.spent} spent
@@ -84,17 +89,40 @@ export function ChallengesPage() {
       </section>
 
       <section className="stack" aria-labelledby="games-h">
-        <h2 id="games-h">Minigames</h2>
+        <div className="row-between">
+          <h2 id="games-h">Reward games</h2>
+          <span className="small muted">Spend tokens on pure fun</span>
+        </div>
         <div className="grid-3">
-          {GAMES.map((g) => (
-            <Link key={g.to} to={g.to} className="card card-tight stack-sm" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <span className="icon-wrap" style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--brand-soft)', color: 'var(--brand)', display: 'grid', placeItems: 'center' }}>
+          {REWARDS.map((g) => (
+            <Link key={g.to} to={g.to} className="card card-tight stack-sm reward-card" style={{ textDecoration: 'none', color: 'inherit' }} data-affordable={tokens.balance >= g.cost}>
+              <span className="icon-wrap reward-icon">
                 <Icon name={g.icon} />
               </span>
               <div className="row-between">
                 <strong>{g.title}</strong>
-                <span className="badge badge-accent">{g.cost === 0 ? 'Free' : `${g.cost} tokens`}</span>
+                <span className="badge badge-token">
+                  <Icon name="coin" size={13} /> {g.cost}
+                </span>
               </div>
+              <span className="small muted">{g.desc}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="stack" aria-labelledby="practice-h">
+        <div className="row-between">
+          <h2 id="practice-h">Free practice and learning</h2>
+          <span className="small muted">Always free, no tokens needed</span>
+        </div>
+        <div className="grid-3">
+          {PRACTICE.map((g) => (
+            <Link key={g.to} to={g.to} className="card card-tight stack-sm" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <span className="icon-wrap" style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--brand-soft)', color: 'var(--brand)', display: 'grid', placeItems: 'center' }}>
+                <Icon name={g.icon} />
+              </span>
+              <strong>{g.title}</strong>
               <span className="small muted">{g.desc}</span>
             </Link>
           ))}

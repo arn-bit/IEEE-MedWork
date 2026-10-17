@@ -36,7 +36,7 @@ export interface AppData {
   pauses: Pause[];
   restChoices: number;
   settings: Settings;
-  games: { quizCompleted: boolean; quizBest: number; balanceCompletions: number; reactionBest: number | null; tokensSpent: number; plays: { game: string; at: string }[]; memoryBest: number | null };
+  games: { quizCompleted: boolean; quizBest: number; balanceCompletions: number; reactionBest: number | null; tokensSpent: number; plays: { game: string; at: string }[]; memoryBest: number | null; puzzleBest: number | null; simonBest: number };
   friends: ScoreCard[];
   personalGoal: PersonalGoal | null;
   seenAchievements: string[];
@@ -70,7 +70,7 @@ export function defaultData(): AppData {
     pauses: [],
     restChoices: 0,
     settings: defaultSettings(),
-    games: { quizCompleted: false, quizBest: 0, balanceCompletions: 0, reactionBest: null, tokensSpent: 0, plays: [], memoryBest: null },
+    games: { quizCompleted: false, quizBest: 0, balanceCompletions: 0, reactionBest: null, tokensSpent: 0, plays: [], memoryBest: null, puzzleBest: null, simonBest: 0 },
     friends: [],
     personalGoal: null,
     seenAchievements: [],

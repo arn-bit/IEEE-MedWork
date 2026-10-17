@@ -21,7 +21,7 @@ export function TokenGate({ game, cost, title, blurb, children }: { game: string
       <Link to="/challenges" className="small">
         ← Challenges
       </Link>
-      <PageHead eyebrow="Minigame" title={title}>
+      <PageHead eyebrow="Reward game" title={title}>
         {blurb}
       </PageHead>
       <div className="card stack token-gate">

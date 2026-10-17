@@ -278,24 +278,41 @@ test.describe('gamification', () => {
     await expect(page.getByText(/does not look like|damaged|incomplete/)).toBeVisible();
   });
 
-  test('games cost tokens: with none earned the Play button is disabled and points to a workout; the quiz stays free', async ({ page }) => {
+  test('reward games cost tokens: with none earned Play is disabled; the practice games and quiz stay free', async ({ page }) => {
     await seed(page);
     await page.goto('/challenges');
     await expect(page.getByRole('heading', { name: /0 tokens/ })).toBeVisible();
-    await page.getByRole('link', { name: /Steady Stance/ }).click();
+    await page.getByRole('link', { name: /Photo Puzzle/ }).click();
     await expect(page.getByRole('button', { name: /Play for 3 tokens/ })).toBeDisabled();
     await expect(page.getByText(/more tokens needed/)).toBeVisible();
+    await page.goto('/challenges/balance');
+    await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
     await page.goto('/challenges/quiz');
     await expect(page.getByRole('heading', { name: /Move Smart Quiz/ })).toBeVisible();
   });
 
-  test('balance game is self-timed and can be completed', async ({ page }) => {
+  test('with tokens earned, a reward game can be paid for and played; the counter updates', async ({ page }) => {
     await seed(page, {}, (d) => {
-      d.games.tokensSpent = 0;
-      d.sessions.push(...[0, 1, 2].map((i) => ({ id: `t${i}`, plannedSessionId: null, startedAt: new Date(Date.now() - (i + 1) * 3600_000).toISOString(), endedAt: new Date(Date.now() - i * 3600_000).toISOString(), endedReason: 'completed', completedExerciseIds: ['sit_to_stand', 'arm_raise'], sets: [], activeSeconds: 600, rpe: null, note: '' }) as never));
+      d.sessions.push(...[0, 1].map((i) => ({ id: `t${i}`, plannedSessionId: null, startedAt: new Date(Date.now() - (i + 1) * 86400_000).toISOString(), endedAt: new Date(Date.now() - i * 86400_000).toISOString(), endedReason: 'completed', completedExerciseIds: ['sit_to_stand', 'arm_raise'], sets: [], activeSeconds: 600, rpe: null, note: '' }) as never));
     });
-    await page.goto('/challenges/balance');
+    await page.goto('/challenges');
+    await expect(page.getByRole('heading', { name: /14 tokens/ })).toBeVisible();
+    await page.getByRole('link', { name: /Memory Match/ }).click();
+    await page.getByRole('button', { name: /Play for 2 tokens/ }).click();
+    await expect(page.getByRole('group', { name: 'Memory cards' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /12 tokens/ }).first()).toBeVisible();
+    await page.goto('/challenges/puzzle');
     await page.getByRole('button', { name: /Play for 3 tokens/ }).click();
+    await expect(page.getByRole('group', { name: 'Sliding puzzle' })).toBeVisible();
+    await page.goto('/challenges/echo');
+    await page.getByRole('button', { name: /Play for 2 tokens/ }).click();
+    await page.getByRole('button', { name: 'Start' }).click();
+    await expect(page.getByText('Watch closely…')).toBeVisible();
+  });
+
+  test('balance game is self-timed and can be completed', async ({ page }) => {
+    await seed(page);
+    await page.goto('/challenges/balance');
     await page.getByRole('radio', { name: '10 seconds' }).check();
     await page.getByRole('button', { name: 'Start' }).click();
     await expect(page.getByText('Hold complete')).toBeVisible({ timeout: 20_000 });

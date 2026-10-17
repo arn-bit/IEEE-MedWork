@@ -18,6 +18,8 @@ import { BalanceGame } from './features/challenges/games/BalanceGame';
 import { ReactionGame } from './features/challenges/games/ReactionGame';
 import { QuizGame } from './features/challenges/games/QuizGame';
 import { MemoryGame } from './features/challenges/games/MemoryGame';
+import { PuzzleGame } from './features/challenges/games/PuzzleGame';
+import { SimonGame } from './features/challenges/games/SimonGame';
 import { TokenGate } from './features/challenges/TokenGate';
 import { GAME_COSTS } from './domain/gamification/tokens';
 import { BRAND } from './brand';
@@ -64,6 +66,18 @@ function ScrollToTop() {
   return null;
 }
 
+function TokenChip() {
+  const { tokens } = useStore();
+  return (
+    <Link to="/challenges" className="token-chip" aria-label={`${tokens.balance} tokens. Open challenges and games`}>
+      <span className="coin coin-sm" aria-hidden="true">
+        <Icon name="coin" size={14} />
+      </span>
+      <span className="num">{tokens.balance}</span>
+    </Link>
+  );
+}
+
 function Shell({ children }: { children: ReactNode }) {
   const { tokens } = useStore();
   return (
@@ -75,6 +89,9 @@ function Shell({ children }: { children: ReactNode }) {
         <Link to="/" className="brand nav-desktop-only" aria-label={`${BRAND.name} home`}>
           <Wordmark />
         </Link>
+        <div className="nav-desktop-only nav-tokens">
+          <TokenChip />
+        </div>
         {NAV.map((n) => (
           <NavLink key={n.to} to={n.to} end={n.to === '/'} aria-label={n.label}>
             <Icon name={n.icon} size={22} />
@@ -100,9 +117,12 @@ function Shell({ children }: { children: ReactNode }) {
             <LogoMark size={28} />
             <span>{BRAND.name}</span>
           </Link>
-          <Link to="/profile#privacy" className="badge badge-brand" aria-label="Privacy: data stays on this device">
-            <Icon name="lock" size={13} /> On-device
-          </Link>
+          <div className="row" style={{ gap: 8 }}>
+            <TokenChip />
+            <Link to="/profile#privacy" className="badge badge-brand" aria-label="Privacy: data stays on this device">
+              <Icon name="lock" size={13} /> On-device
+            </Link>
+          </div>
         </header>
         <main id="main" className="main" tabIndex={-1}>
           <StatusBanners />
@@ -140,37 +160,39 @@ export function App() {
         <Route path="/workout" element={<Shell><RequireProfile><WorkoutPage /></RequireProfile></Shell>} />
         <Route path="/progress" element={<Shell><RequireProfile><ProgressPage /></RequireProfile></Shell>} />
         <Route path="/challenges" element={<Shell><RequireProfile><ChallengesPage /></RequireProfile></Shell>} />
-        <Route
-          path="/challenges/balance"
-          element={
-            <Shell>
-              <RequireProfile>
-                <TokenGate game="balance" cost={GAME_COSTS.balance} title="Steady Stance" blurb="A short, supported balance hold with levels from seated to single-leg.">
-                  {(end) => <BalanceGame onEnd={end} />}
-                </TokenGate>
-              </RequireProfile>
-            </Shell>
-          }
-        />
-        <Route
-          path="/challenges/reaction"
-          element={
-            <Shell>
-              <RequireProfile>
-                <TokenGate game="reaction" cost={GAME_COSTS.reaction} title="Reaction Reach" blurb="Tap targets as they appear. Gentle coordination practice that works seated.">
-                  {(end) => <ReactionGame onEnd={end} />}
-                </TokenGate>
-              </RequireProfile>
-            </Shell>
-          }
-        />
+        <Route path="/challenges/balance" element={<Shell><RequireProfile><BalanceGame /></RequireProfile></Shell>} />
+        <Route path="/challenges/reaction" element={<Shell><RequireProfile><ReactionGame /></RequireProfile></Shell>} />
         <Route
           path="/challenges/memory"
           element={
             <Shell>
               <RequireProfile>
-                <TokenGate game="memory" cost={GAME_COSTS.memory} title="Memory Match" blurb="Pair up exercise pictures. Calm, no timer.">
+                <TokenGate game="memory" cost={GAME_COSTS.memory} title="Memory Match" blurb="Find the matching pairs of pictures. Calm, no timer.">
                   {(end) => <MemoryGame onEnd={end} />}
+                </TokenGate>
+              </RequireProfile>
+            </Shell>
+          }
+        />
+        <Route
+          path="/challenges/puzzle"
+          element={
+            <Shell>
+              <RequireProfile>
+                <TokenGate game="puzzle" cost={GAME_COSTS.puzzle} title="Photo Puzzle" blurb="Slide the pieces back into the picture.">
+                  {(end) => <PuzzleGame onEnd={end} />}
+                </TokenGate>
+              </RequireProfile>
+            </Shell>
+          }
+        />
+        <Route
+          path="/challenges/echo"
+          element={
+            <Shell>
+              <RequireProfile>
+                <TokenGate game="simon" cost={GAME_COSTS.simon} title="Colour Echo" blurb="Watch the colours, then repeat the pattern.">
+                  {(end) => <SimonGame onEnd={end} />}
                 </TokenGate>
               </RequireProfile>
             </Shell>

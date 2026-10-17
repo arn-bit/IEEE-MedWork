@@ -1,11 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { useStore } from '../../../state/store';
-import { getExercise } from '../../../domain/exercises/library';
-import { FigureDemo } from '../../../components/demo/FigureDemo';
 import { Callout, PageHead } from '../../../components/ui';
 
-const POOL = ['sit_to_stand', 'wall_pushup', 'arm_raise', 'mini_squat', 'side_leg_lift', 'biceps_curl', 'calf_raise_supported', 'chest_stretch_seated', 'hip_hinge', 'step_touch'];
+const POOL: [string, string][] = [['🍎', 'Apple'], ['🐶', 'Dog'], ['🚲', 'Bicycle'], ['🌵', 'Cactus'], ['🎈', 'Balloon'], ['🐢', 'Turtle'], ['🍕', 'Pizza'], ['🌻', 'Sunflower'], ['🚀', 'Rocket'], ['🎸', 'Guitar'], ['🦊', 'Fox'], ['🍩', 'Doughnut']];
 
 interface CardState {
   uid: number;
@@ -13,7 +11,7 @@ interface CardState {
 }
 
 function deal(): CardState[] {
-  const picks = [...POOL].sort(() => Math.random() - 0.5).slice(0, 6);
+  const picks = POOL.map((p) => p[0]).sort(() => Math.random() - 0.5).slice(0, 6);
   const cards = [...picks, ...picks].map((id, i) => ({ uid: i, id }));
   return cards.sort(() => Math.random() - 0.5).map((c, i) => ({ ...c, uid: i }));
 }
@@ -28,7 +26,7 @@ export function MemoryGame({ onEnd }: { onEnd: () => void }) {
   const [locked, setLocked] = useState(false);
   const done = matched.length === 6;
   const best = data.games.memoryBest;
-  const names = useMemo(() => Object.fromEntries(POOL.map((id) => [id, getExercise(id)?.name ?? id])), []);
+  const names: Record<string, string> = Object.fromEntries(POOL);
 
   const flip = (uid: number) => {
     if (locked || open.includes(uid) || matched.includes(cards[uid]!.id)) return;
@@ -57,8 +55,8 @@ export function MemoryGame({ onEnd }: { onEnd: () => void }) {
       <Link to="/challenges" className="small">
         ← Challenges
       </Link>
-      <PageHead eyebrow="Minigame" title="Memory Match">
-        Find the pairs of matching exercises. There’s no timer and nothing to rush: just a gentle workout for your memory.
+      <PageHead eyebrow="Reward game" title="Memory Match">
+        Find the matching pairs. There’s no timer and nothing to rush. Just a relaxing reward.
       </PageHead>
       <div className="memory-grid" role="group" aria-label="Memory cards">
         {cards.map((c) => {
@@ -73,7 +71,7 @@ export function MemoryGame({ onEnd }: { onEnd: () => void }) {
               aria-label={shown ? `Card ${c.uid + 1}: ${names[c.id]}` : `Card ${c.uid + 1}: face down`}
               aria-pressed={shown}
             >
-              {shown ? <FigureDemo exerciseId={c.id} size="sm" /> : <span className="memory-back" aria-hidden="true" />}
+              {shown ? <span className="memory-emoji" aria-hidden="true">{c.id}</span> : <span className="memory-back" aria-hidden="true" />}
             </button>
           );
         })}
@@ -87,7 +85,7 @@ export function MemoryGame({ onEnd }: { onEnd: () => void }) {
       {done ? (
         <div className="card stack">
           <Callout tone="ok" title={`All pairs found in ${moves} moves`}>
-            Nicely done. Exercises you matched: {matched.map((id) => names[id]).join(', ')}.
+            Nicely done. You matched: {matched.map((id) => names[id]).join(', ')}.
           </Callout>
           <div className="row">
             <button className="btn btn-primary" onClick={onEnd}>

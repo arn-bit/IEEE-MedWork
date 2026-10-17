@@ -152,3 +152,112 @@
   position: static;
   margin-left: auto;
 }
+
+/* ─────────────── Token counter, reward cards, new games ─────────────── */
+.token-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 5px;
+  border-radius: 999px;
+  background: var(--sun-soft);
+  color: var(--ink);
+  font-weight: 750;
+  text-decoration: none;
+  border: 1px solid color-mix(in srgb, var(--sun) 55%, transparent);
+  box-shadow: var(--shadow-1);
+}
+.token-chip:hover {
+  color: var(--ink);
+  box-shadow: var(--shadow-2);
+}
+.coin-sm {
+  width: 24px;
+  height: 24px;
+}
+.nav-tokens {
+  padding: 0 12px 8px;
+}
+.wallet-count {
+  font-size: 2.2rem;
+}
+.reward-card[data-affordable='false'] {
+  opacity: 0.85;
+}
+.reward-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--grad-pop);
+  color: #fff;
+}
+.badge-token {
+  background: var(--sun-soft);
+  color: var(--ink);
+  gap: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+.memory-emoji {
+  font-size: clamp(1.8rem, 6vw, 2.8rem);
+  line-height: 1;
+}
+.puzzle {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  aspect-ratio: 1;
+  padding: 6px;
+  background: var(--surface-3);
+  border-radius: 20px;
+  box-shadow: var(--shadow-2);
+}
+.puzzle-tile {
+  border: 0;
+  border-radius: 12px;
+  background-image: var(--pic);
+  background-size: 300% 300%;
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur);
+}
+.puzzle-tile[data-movable='true']:hover {
+  transform: scale(0.96);
+}
+.puzzle-tile[data-movable='true'] {
+  box-shadow: inset 0 0 0 3px rgb(255 255 255 / 0.55);
+}
+.puzzle-tile[data-blank='true'] {
+  background: transparent;
+  box-shadow: none;
+  cursor: default;
+}
+.puzzle[data-done='true'] .puzzle-tile {
+  border-radius: 0;
+}
+.simon {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 360px;
+  margin: 0 auto;
+  width: 100%;
+}
+.simon-pad {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 28px;
+  background: var(--pad);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 120ms, transform 120ms, box-shadow 120ms;
+}
+.simon-pad[data-lit='true'] {
+  opacity: 1;
+  transform: scale(1.04);
+  box-shadow: 0 0 0 5px rgb(255 255 255 / 0.7), 0 0 30px var(--pad);
+}
+.simon-pad:disabled {
+  cursor: default;
+}

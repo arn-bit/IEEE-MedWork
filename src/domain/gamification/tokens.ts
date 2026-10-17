@@ -25,12 +25,13 @@ export const TOKEN_RULES = {
   maxRestTokens: 24,
 } as const;
 
-export type GameId = 'balance' | 'reaction' | 'memory' | 'garden_quiz';
+export type GameId = 'memory' | 'puzzle' | 'simon';
 
-export const GAME_COSTS: Record<'balance' | 'reaction' | 'memory', number> = {
-  balance: 3,
-  reaction: 3,
+/** Reward games: pure fun, nothing to do with exercise. Balance, reaction and the quiz are free practice. */
+export const GAME_COSTS: Record<GameId, number> = {
   memory: 2,
+  puzzle: 3,
+  simon: 2,
 };
 
 export function sessionTokens(s: SessionLog): number {
