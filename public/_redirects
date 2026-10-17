@@ -1,0 +1,3 @@
+# Single-page app: send unknown paths to the app so refreshing /plan etc. works.
+# Real files (assets, models, wasm) are served as-is before this rule applies.
+/*  /index.html  200
