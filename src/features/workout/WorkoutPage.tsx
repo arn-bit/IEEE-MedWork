@@ -98,7 +98,7 @@ export function WorkoutPage() {
   if (stage === 'choose' || !selected) {
     return (
       <div className="stack">
-        <PageHead eyebrow="Workout" title="Choose a workout">
+        <PageHead photo="hero" eyebrow="Workout" title="Choose a workout">
           Today is a {plan.schedule[todayIndex()] ? 'workout' : 'rest'} day in your plan. You can do any session from your week.
         </PageHead>
         <div className="grid-2">

@@ -11,6 +11,7 @@ import { Icon, Wordmark, type IconName } from '../../components/Icon';
 import { FigureDemo } from '../../components/demo/FigureDemo';
 import { StatusBanners } from '../../components/Layouts';
 import { Scene } from '../../components/Illustrations';
+import { Photo, type PhotoName } from '../../components/Photo';
 import { describePrescription } from '../plan/PlanPage';
 import { RestoreBackup } from './RestoreBackup';
 
@@ -28,7 +29,7 @@ function useSample(): PlannedSession | null {
 const FEATURES: { icon: IconName; title: string; text: string }[] = [
   { icon: 'shield', title: 'Safety first, in plain rules', text: 'Emergency signs, symptoms and conditions are checked by fixed, testable rules before any plan exists. No AI deciding what’s safe.' },
   { icon: 'book', title: 'Tell it your way', text: 'Tap quick answers or type in your own words. We show exactly what we understood and let you correct it.' },
-  { icon: 'camera', title: 'Camera counting that stays put', text: 'On-device pose tracking counts reps for supported moves. Video never leaves your device, and you can switch it off any time.' },
+  { icon: 'camera', title: 'Camera counting that stays put', text: 'On-device pose tracking counts reps, times holds and spots movement for every exercise. Video never leaves your device, and you can switch it off any time.' },
   { icon: 'calendar', title: 'Streaks that forgive', text: 'Consistency is weekly, against your own plan. Rest and sick days never break it, and you’re never nudged to push through symptoms.' },
   { icon: 'eye', title: 'Built for every body', text: 'Seated plans, supported balance, large text, high contrast, reduced motion and keyboard-friendly everything.' },
   { icon: 'lock', title: 'Yours alone', text: 'No account. Optional passcode encryption, one-tap export and delete-everything. Works offline once loaded.' },
@@ -125,7 +126,7 @@ export function WelcomePage() {
         <div className="land-wrap">
           <StatusBanners />
         </div>
-        <section className="land-hero land-wrap" aria-labelledby="hero-h">
+        <section className="land-hero land-wrap hero-photo" aria-labelledby="hero-h">
           <div className="stack hero-copy">
             <span className="badge badge-brand hero-badge">
               <Icon name="spark" size={14} /> Free · No account · Works offline
@@ -164,9 +165,27 @@ export function WelcomePage() {
           {mainItems.length > 0 ? <HeroVisual items={mainItems} /> : null}
         </section>
 
-        <section className="land-wrap scene-band" aria-label="Movement for every body">
-          <Scene name="sunrise" />
-          <p className="scene-caption">Short, gentle sessions for every age, ability and day.</p>
+        <section className="land-wrap mosaic-wrap" aria-labelledby="mosaic-h">
+          <div className="section-head">
+            <span className="eyebrow">For every body</span>
+            <h2 id="mosaic-h">Short, gentle sessions for every age, ability and day</h2>
+          </div>
+          <ul className="mosaic">
+            {([
+              ['seniors', 'Chair-based strength', 'Seated and supported plans'],
+              ['home', 'Home in 15 minutes', 'No gym, no kit needed'],
+              ['family', 'Move together', 'Gentle sessions for all ages'],
+              ['walk', 'Easy outdoor days', 'Walking counts too'],
+            ] as [PhotoName, string, string][]).map(([p, t, d]) => (
+              <li key={p} className={`tile tile-${p}`}>
+                <Photo name={p} />
+                <div className="tile-cap">
+                  <strong>{t}</strong>
+                  <span>{d}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="land-strip" aria-label="Built on public guidance">

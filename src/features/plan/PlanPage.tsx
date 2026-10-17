@@ -101,6 +101,7 @@ export function PlanPage() {
   return (
     <div className="stack fade-in">
       <PageHead
+        photo="home"
         eyebrow="My plan"
         title={`${profile.daysPerWeek} days a week · ${profile.minutesPerSession} min`}
         actions={

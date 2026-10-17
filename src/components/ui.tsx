@@ -1,8 +1,9 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Icon, type IconName } from './Icon';
 import { getEvidence, EVIDENCE_KIND_LABEL } from '../domain/evidence/registry';
 import type { EvidenceKind } from '../domain/types';
+import { PHOTOS, type PhotoName } from './Photo';
 
 export function Callout({ tone = 'info', title, children, icon }: { tone?: 'info' | 'warn' | 'danger' | 'ok'; title?: ReactNode; children?: ReactNode; icon?: IconName }) {
   const defaultIcon: Record<string, IconName> = { info: 'info', warn: 'alert', danger: 'alert', ok: 'check' };
@@ -30,9 +31,9 @@ export function EmptyState({ icon, title, children, action }: { icon: IconName; 
   );
 }
 
-export function PageHead({ eyebrow, title, children, actions }: { eyebrow?: string; title: string; children?: ReactNode; actions?: ReactNode }) {
+export function PageHead({ eyebrow, title, children, actions, photo }: { eyebrow?: string; title: string; children?: ReactNode; actions?: ReactNode; photo?: PhotoName }) {
   return (
-    <header className="page-head">
+    <header className={photo ? 'page-head has-photo' : 'page-head'} style={photo ? ({ '--photo': `url(${PHOTOS[photo].src})` } as CSSProperties) : undefined}>
       <div className="row-between">
         <div className="stack-sm" style={{ gap: 4 }}>
           {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}

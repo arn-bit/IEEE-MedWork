@@ -39,6 +39,13 @@ export function AboutPage() {
       </section>
 
       <section className="card stack-sm">
+        <h2>Images</h2>
+        <p className="small">
+          Photographs are from Unsplash and used under the Unsplash License. They are copied into this app, so showing them never contacts another site. The exercise figures and illustrations are original.
+        </p>
+      </section>
+
+      <section className="card stack-sm">
         <h2>Camera tracking</h2>
         <p className="small">
           Uses <strong>{MODEL_INFO.name}</strong> ({MODEL_INFO.license}) via {MODEL_INFO.runtime}, running in your browser. The model file was downloaded from Google’s official model

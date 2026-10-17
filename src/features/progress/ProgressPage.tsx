@@ -45,7 +45,7 @@ export function ProgressPage() {
 
   return (
     <div className="stack-lg fade-in">
-      <PageHead eyebrow="Progress" title="Your progress">
+      <PageHead photo="walk" eyebrow="Progress" title="Your progress">
         This shows workouts you logged — consistency, not health outcomes. It can’t tell you whether a condition has improved.
       </PageHead>
 

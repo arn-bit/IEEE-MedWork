@@ -53,7 +53,7 @@ export function ChallengesPage() {
 
   return (
     <div className="stack-lg fade-in">
-      <PageHead eyebrow="Challenges" title="Challenges & games">
+      <PageHead photo="run" eyebrow="Challenges" title="Challenges & games">
         Rewards here are for consistency, learning and looking after yourself — never for doing more than your plan.
       </PageHead>
 

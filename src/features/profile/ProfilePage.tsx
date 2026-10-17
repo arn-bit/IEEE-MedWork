@@ -55,7 +55,7 @@ export function ProfilePage() {
 
   return (
     <div className="stack-lg fade-in">
-      <PageHead eyebrow="Profile & Health" title={profile?.displayName ? profile.displayName : 'Your profile'}>
+      <PageHead photo="seniors" eyebrow="Profile & Health" title={profile?.displayName ? profile.displayName : 'Your profile'}>
         Your answers, how we read them, and your privacy controls. Everything here is stored only in this browser.
       </PageHead>
 

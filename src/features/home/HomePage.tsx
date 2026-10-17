@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useStore } from '../../state/store';
 import { DAY_NAMES } from '../../domain/plan/engine';
@@ -56,7 +57,7 @@ export function HomePage() {
 
   return (
     <div className="stack-lg fade-in">
-      <header className="page-head" style={{ marginBottom: 0 }}>
+      <header className="page-head has-photo home-banner" style={{ marginBottom: 0, ...({ '--photo': 'url(/img/seniors.jpg)' } as CSSProperties) }}>
         <span className="eyebrow">{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
         <h1 className="home-title">
           {greeting}
