@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-17T21:29:09.638Z",
+  "generatedAt": "2026-10-17T21:46:41.286Z",
   "model": {
     "file": "pose_landmarker_lite.task",
     "url": "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task",
@@ -14,15 +14,26 @@
     "version": "1.0.1",
     "license": "Apache-2.0"
   },
-  "foodModel": {
-    "file": "efficientnet_b0_food101.onnx",
-    "url": "https://huggingface.co/spaces/LeooNic/food-101-classifier/resolve/main/models/efficientnet_b0_food101.onnx",
-    "name": "EfficientNet-B0 fine-tuned on Food-101 (ONNX)",
-    "license": "MIT (per the project README)",
-    "modelCard": "https://huggingface.co/spaces/LeooNic/food-101-classifier",
-    "bytes": 16537732,
-    "sha256": "a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179"
-  },
+  "foodModels": [
+    {
+      "file": "efficientnet_b0_food101.onnx",
+      "url": "https://huggingface.co/spaces/LeooNic/food-101-classifier/resolve/main/models/efficientnet_b0_food101.onnx",
+      "name": "EfficientNet-B0 fine-tuned on Food-101 (ONNX)",
+      "license": "MIT (per the project README)",
+      "modelCard": "https://huggingface.co/spaces/LeooNic/food-101-classifier",
+      "bytes": 16537732,
+      "sha256": "a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179"
+    },
+    {
+      "file": "mobilenet_v2_imagenet.onnx",
+      "url": "https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-12.onnx",
+      "name": "MobileNetV2 (ImageNet, ONNX Model Zoo mobilenetv2-12): used for whole foods like fruit and vegetables",
+      "license": "Apache-2.0 (ONNX Model Zoo)",
+      "modelCard": "https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet",
+      "bytes": 13964571,
+      "sha256": "c0c3f76d93fa3fd6580652a45618618a220fced18babf65774ed169de0432ad5"
+    }
+  ],
   "foodRuntime": {
     "package": "onnxruntime-web",
     "license": "MIT"
@@ -38,6 +49,11 @@
       "path": "public/models/food/efficientnet_b0_food101.onnx",
       "bytes": 16537732,
       "sha256": "a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179"
+    },
+    {
+      "path": "public/models/food/mobilenet_v2_imagenet.onnx",
+      "bytes": 13964571,
+      "sha256": "c0c3f76d93fa3fd6580652a45618618a220fced18babf65774ed169de0432ad5"
     },
     {
       "path": "public/ort/ort-wasm-simd-threaded.wasm",

@@ -34,6 +34,18 @@ test('nutrition: a burger photo is recognised, and numbers can be hidden', async
   await expect(page.getByText(/kcal \(estimate\)/)).toHaveCount(0);
 });
 
+test('nutrition: whole foods are recognised too (banana is a banana, not churros)', async ({ page }) => {
+  test.setTimeout(150_000);
+  await seed(page);
+  await page.goto('/nutrition');
+  await page.getByLabel('Choose a photo of your meal').setInputFiles('e2e/fixtures/banana.jpg');
+  await expect(page.getByRole('heading', { level: 3, name: 'Banana' })).toBeVisible({ timeout: 120_000 });
+  await page.getByLabel('Choose a photo of your meal').setInputFiles('e2e/fixtures/broccoli.jpg');
+  await expect(page.getByRole('heading', { level: 3, name: 'Broccoli' })).toBeVisible({ timeout: 60_000 });
+  await page.getByLabel('Choose a photo of your meal').setInputFiles('e2e/fixtures/apple.jpg');
+  await expect(page.getByRole('radio', { name: /^Apple/ })).toBeVisible({ timeout: 60_000 });
+});
+
 test('nutrition: a non-image file is rejected kindly', async ({ page }) => {
   await seed(page);
   await page.goto('/nutrition');

@@ -34,7 +34,7 @@ const MODEL = {
   docs: 'https://developers.google.com/edge/mediapipe/solutions/vision/pose_landmarker',
 };
 
-const FOOD = {
+const FOODS = [{
   file: 'efficientnet_b0_food101.onnx',
   url: 'https://huggingface.co/spaces/LeooNic/food-101-classifier/resolve/main/models/efficientnet_b0_food101.onnx',
   name: 'EfficientNet-B0 fine-tuned on Food-101 (ONNX)',
@@ -43,7 +43,15 @@ const FOOD = {
   bytes: 16537732,
   // Pinned: the download is refused unless it matches this SHA-256.
   sha256: 'a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179',
-};
+}, {
+  file: 'mobilenet_v2_imagenet.onnx',
+  url: 'https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-12.onnx',
+  name: 'MobileNetV2 (ImageNet, ONNX Model Zoo mobilenetv2-12): used for whole foods like fruit and vegetables',
+  license: 'Apache-2.0 (ONNX Model Zoo)',
+  modelCard: 'https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet',
+  bytes: 13964571,
+  sha256: 'c0c3f76d93fa3fd6580652a45618618a220fced18babf65774ed169de0432ad5',
+}];
 const ortPkgDir = join(root, 'node_modules', 'onnxruntime-web', 'dist');
 const ortOutDir = join(root, 'public', 'ort');
 const ORT_FILES = ['ort-wasm-simd-threaded.wasm', 'ort-wasm-simd-threaded.mjs'];
@@ -98,23 +106,23 @@ async function downloadModel() {
   return { buf, md5: expectedMd5, lastModified: res.headers.get('last-modified') };
 }
 
-async function downloadFood() {
+async function downloadFood(food) {
   const dir = join(modelsDir, 'food');
   mkdirSync(dir, { recursive: true });
-  const dest = join(dir, FOOD.file);
+  const dest = join(dir, food.file);
   if (existsSync(dest)) {
     const have = readFileSync(dest);
-    if (have.length === FOOD.bytes && sha256(have) === FOOD.sha256) {
-      console.log(`[models] ${FOOD.file} already present and verified`);
+    if (have.length === food.bytes && sha256(have) === food.sha256) {
+      console.log(`[models] ${food.file} already present and verified`);
       return have;
     }
   }
-  const res = await fetch(FOOD.url);
-  if (!res.ok) fail(`download failed: HTTP ${res.status} from ${FOOD.url}`);
+  const res = await fetch(food.url);
+  if (!res.ok) fail(`download failed: HTTP ${res.status} from ${food.url}`);
   const buf = Buffer.from(await res.arrayBuffer());
-  if (buf.length !== FOOD.bytes || sha256(buf) !== FOOD.sha256) fail('food model does not match the pinned size/SHA-256; refusing to use it');
+  if (buf.length !== food.bytes || sha256(buf) !== food.sha256) fail(`${food.file} does not match the pinned size/SHA-256; refusing to use it`);
   writeFileSync(dest, buf);
-  console.log(`[models] downloaded ${FOOD.file} (${buf.length} bytes), SHA-256 verified`);
+  console.log(`[models] downloaded ${food.file} (${buf.length} bytes), SHA-256 verified`);
   return buf;
 }
 
@@ -146,11 +154,12 @@ async function setup() {
   const pkgVersion = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')).version;
   const { buf, md5, lastModified } = await downloadModel();
   const wasmFiles = copyWasm();
-  const foodBuf = await downloadFood();
+  const foodBufs = [];
+  for (const food of FOODS) foodBufs.push(await downloadFood(food));
   copyOrt();
   const files = [
     { path: `public/models/${MODEL.file}`, bytes: buf.length, sha256: sha256(buf), md5Base64: md5 },
-    { path: `public/models/food/${FOOD.file}`, bytes: foodBuf.length, sha256: sha256(foodBuf) },
+    ...FOODS.map((food, i) => ({ path: `public/models/food/${food.file}`, bytes: foodBufs[i].length, sha256: sha256(foodBufs[i]) })),
     ...ORT_FILES.map((f) => {
       const b = readFileSync(join(ortOutDir, f));
       return { path: `public/ort/${f}`, bytes: b.length, sha256: sha256(b) };
@@ -164,7 +173,7 @@ async function setup() {
     generatedAt: new Date().toISOString(),
     model: { ...MODEL, serverLastModified: lastModified },
     runtime: { package: '@mediapipe/tasks-vision', version: pkgVersion, license: 'Apache-2.0' },
-    foodModel: { ...FOOD },
+    foodModels: FOODS,
     foodRuntime: { package: 'onnxruntime-web', license: 'MIT' },
     files,
   };

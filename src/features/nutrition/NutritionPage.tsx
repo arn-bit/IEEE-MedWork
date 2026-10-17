@@ -3,7 +3,7 @@ import { useStore } from '../../state/store';
 import { ageBandFor } from '../../domain/safety/screening';
 import { Callout, PageHead } from '../../components/ui';
 import { Icon } from '../../components/Icon';
-import { FOODS, MEALS, foodById, scaleFood, sumMeals, type Food, type MealEntry, type MealType } from '../../nutrition/foods';
+import { ALL_FOODS, FOODS, MEALS, foodById, scaleFood, sumMeals, type Food, type MealEntry, type MealType } from '../../nutrition/foods';
 import { recognizeFood, type Guess } from '../../nutrition/recognize';
 
 const PORTIONS = [
@@ -35,6 +35,7 @@ export function NutritionPage() {
   const [confidence, setConfidence] = useState<number | undefined>(undefined);
   const [added, setAdded] = useState<string | null>(null);
   const [manualId, setManualId] = useState(FOODS[0]!.id);
+  const sortedFoods = [...ALL_FOODS].sort((a, b) => a.name.localeCompare(b.name));
   const [customName, setCustomName] = useState('');
   const [customKcal, setCustomKcal] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -127,7 +128,7 @@ export function NutritionPage() {
         </div>
         <input ref={camRef} type="file" accept="image/*" capture="environment" className="visually-hidden" aria-label="Take a photo of your meal" onChange={(e) => { void analyse(e.target.files?.[0]); e.target.value = ''; }} />
         <input ref={fileRef} type="file" accept="image/*" className="visually-hidden" aria-label="Choose a photo of your meal" onChange={(e) => { void analyse(e.target.files?.[0]); e.target.value = ''; }} />
-        <p className="tiny muted">The first scan loads a small food model (about 16 MB) from this app, not the internet. It knows 101 common dishes, so unusual meals may need a manual pick.</p>
+        <p className="tiny muted">The first scan loads two small food models (about 30 MB in total) from this app, not the internet. It knows 101 common dishes plus about 25 whole foods like fruit and vegetables, so unusual meals may need a manual pick.</p>
 
         {phase.name === 'loading' ? (
           <div className="nut-loading" role="status">
@@ -174,7 +175,7 @@ export function NutritionPage() {
               <div className="field">
                 <label htmlFor="any-dish">Or pick any dish</label>
                 <select id="any-dish" className="input" value={pickedId ?? ''} onChange={(e) => { setPickedId(e.target.value); setConfidence(undefined); }}>
-                  {FOODS.map((f) => (
+                  {sortedFoods.map((f) => (
                     <option key={f.id} value={f.id}>
                       {f.name}
                     </option>
@@ -254,7 +255,7 @@ export function NutritionPage() {
           <div className="field">
             <label htmlFor="manual-dish">Dish</label>
             <select id="manual-dish" className="input" value={manualId} onChange={(e) => setManualId(e.target.value)}>
-              {FOODS.map((f) => (
+              {sortedFoods.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.name}
                 </option>
@@ -369,7 +370,7 @@ export function NutritionPage() {
           </span>
         </label>
         <p className="tiny muted">
-          The recognition model is EfficientNet-B0 trained on the Food-101 dataset (MIT license, about 84% top-1 accuracy on its own test set, as reported by its author) and runs with ONNX Runtime Web (MIT). It recognises 101 dishes and can’t tell portion
+          Dishes are recognised by an EfficientNet-B0 trained on the Food-101 dataset (MIT license, about 84% top-1 accuracy on its own test set, as reported by its author). Fruit, vegetables and a few other whole foods are recognised by MobileNetV2 trained on ImageNet (Apache-2.0). Both run with ONNX Runtime Web (MIT). It recognises 101 dishes and around 25 whole foods, and can’t tell portion
           size, ingredients or hidden oils, so treat every number as a starting point.
         </p>
       </section>

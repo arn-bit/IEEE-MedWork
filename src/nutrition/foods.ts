@@ -129,11 +129,56 @@ const ROWS: Row[] = [
 
 export const FOODS: readonly Food[] = ROWS.map(([id, name, grams, serving, kcal, protein, carbs, fat]) => ({ id, name, grams, serving, kcal, protein, carbs, fat }));
 
+/**
+ * Whole foods and everyday basics. These are NOT classifier outputs from the dish model: the second
+ * (ImageNet) model can recognise many of them, and the rest are here so you can log them by hand.
+ */
+const EXTRA_ROWS: Row[] = [
+  ['apple', 'Apple', 180, '1 medium', 95, 0.5, 25, 0.3],
+  ['artichoke', 'Artichoke', 120, '1 medium', 60, 4, 13, 0.2],
+  ['avocado', 'Avocado', 100, '½ avocado', 160, 2, 9, 15],
+  ['bagel', 'Bagel', 105, '1 bagel', 280, 11, 55, 1.7],
+  ['baguette', 'Baguette', 60, '3 slices', 160, 6, 31, 1],
+  ['banana', 'Banana', 118, '1 medium', 105, 1.3, 27, 0.4],
+  ['bell_pepper', 'Bell pepper', 120, '1 medium', 31, 1, 7, 0.3],
+  ['bread_slice', 'Bread', 30, '1 slice', 80, 3, 15, 1],
+  ['broccoli', 'Broccoli', 90, '1 cup', 31, 2.6, 6, 0.3],
+  ['cabbage', 'Cabbage', 70, '1 cup shredded', 18, 1, 4, 0.1],
+  ['carrot', 'Carrot', 60, '1 medium', 25, 0.6, 6, 0.1],
+  ['cauliflower', 'Cauliflower', 100, '1 cup', 25, 2, 5, 0.1],
+  ['chicken_breast', 'Chicken breast', 120, '1 cooked breast', 200, 37, 0, 4.3],
+  ['corn', 'Corn on the cob', 100, '1 ear', 90, 3.3, 19, 1.4],
+  ['cucumber', 'Cucumber', 104, '1 cup sliced', 16, 0.7, 3.8, 0.1],
+  ['egg', 'Egg', 50, '1 large', 72, 6.3, 0.4, 4.8],
+  ['fig', 'Figs', 100, '2 medium', 74, 0.8, 19, 0.3],
+  ['grapes', 'Grapes', 150, '1 cup', 104, 1.1, 27, 0.2],
+  ['mashed_potato', 'Mashed potato', 210, '1 cup', 214, 4, 35, 7],
+  ['milk', 'Milk', 244, '1 cup', 122, 8, 12, 4.8],
+  ['mushroom', 'Mushrooms', 70, '1 cup sliced', 15, 2.2, 2.3, 0.2],
+  ['oatmeal', 'Oatmeal', 240, '1 cup cooked', 160, 6, 27, 3],
+  ['orange', 'Orange', 130, '1 medium', 62, 1.2, 15, 0.2],
+  ['peanut_butter', 'Peanut butter', 32, '2 tablespoons', 190, 7, 7, 16],
+  ['pineapple', 'Pineapple', 165, '1 cup chunks', 82, 0.9, 22, 0.2],
+  ['pomegranate', 'Pomegranate', 87, '½ cup seeds', 72, 1.5, 16, 1],
+  ['potato_baked', 'Baked potato', 170, '1 medium', 161, 4.3, 37, 0.2],
+  ['pretzel', 'Soft pretzel', 115, '1 pretzel', 340, 9, 70, 3],
+  ['rice', 'Rice', 160, '1 cup cooked', 205, 4.3, 45, 0.4],
+  ['salad_greens', 'Green salad', 85, '2 cups', 20, 1.5, 3.5, 0.2],
+  ['squash', 'Squash', 200, '1 cup cooked cubes', 82, 1.8, 22, 0.2],
+  ['strawberries', 'Strawberries', 150, '1 cup', 49, 1, 12, 0.5],
+  ['tomato', 'Tomato', 120, '1 medium', 22, 1.1, 4.8, 0.2],
+  ['yogurt', 'Plain yogurt', 245, '1 cup', 154, 13, 17, 3.8],
+  ['zucchini', 'Zucchini', 196, '1 medium', 33, 2.4, 6, 0.6],
+];
+
+export const EXTRA_FOODS: readonly Food[] = EXTRA_ROWS.map(([id, name, grams, serving, kcal, protein, carbs, fat]) => ({ id, name, grams, serving, kcal, protein, carbs, fat }));
+export const ALL_FOODS: readonly Food[] = [...FOODS, ...EXTRA_FOODS];
+
 export function foodByIndex(i: number): Food | undefined {
   return FOODS[i];
 }
 export function foodById(id: string): Food | undefined {
-  return FOODS.find((f) => f.id === id);
+  return ALL_FOODS.find((f) => f.id === id);
 }
 
 export interface Nutrients {
