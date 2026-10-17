@@ -7,8 +7,9 @@ import { countsAsSession, startOfWeek, weekKey, weekSummaries, type Pause } from
  * Designed to reward consistency, not volume (same principle as streaks and points):
  *  - Only your first N sessions each week earn tokens, where N is the number of workouts in YOUR plan.
  *    Extra sessions are welcome but earn nothing extra, so there's no incentive to overtrain.
- *  - A session you stop because you felt unwell still earns a full "showing up" reward. You are never
- *    penalised for listening to your body.
+ *  - Only a workout you finish earns tokens. Ending early (for any reason) earns none, so the reward
+ *    can't be farmed by starting and stopping. Stopping when something hurts is still always the right
+ *    call; it just isn't rewarded with tokens, and it never costs you your streak or plan.
  *  - Choosing to rest earns a few tokens (limited), so rest is never the "worse" option.
  *  - Earned tokens are DERIVED from your logged sessions, so the balance can't drift out of sync.
  */
@@ -19,8 +20,6 @@ export const TOKEN_RULES = {
   /** Extra tokens per exercise completed, up to `maxExerciseBonus`. */
   perExercise: 1,
   maxExerciseBonus: 8,
-  /** A session ended because you felt unwell earns the base reward. */
-  stoppedForSymptoms: 5,
   /** Tokens per "I'm resting today" choice, capped overall. */
   perRestChoice: 2,
   maxRestTokens: 24,
@@ -36,7 +35,7 @@ export const GAME_COSTS: Record<'balance' | 'reaction' | 'memory', number> = {
 
 export function sessionTokens(s: SessionLog): number {
   if (!countsAsSession(s)) return 0;
-  if (s.endedReason === 'stopped_symptoms') return TOKEN_RULES.stoppedForSymptoms;
+  if (s.endedReason !== 'completed') return 0;
   return TOKEN_RULES.base + Math.min(TOKEN_RULES.maxExerciseBonus, s.completedExerciseIds.length * TOKEN_RULES.perExercise);
 }
 

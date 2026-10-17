@@ -24,9 +24,9 @@ describe('earning tokens', () => {
     expect(sessionTokens(log('2026-10-12T09:00:00', { completedExerciseIds: Array.from({ length: 20 }, (_, i) => `e${i}`) }))).toBe(TOKEN_RULES.base + TOKEN_RULES.maxExerciseBonus);
   });
 
-  it('stopping because you felt unwell still earns the full showing-up reward', () => {
-    const s = log('2026-10-12T09:00:00', { activeSeconds: 20, endedReason: 'stopped_symptoms', completedExerciseIds: [] });
-    expect(sessionTokens(s)).toBe(TOKEN_RULES.stoppedForSymptoms);
+  it('ending a workout early earns no tokens, whatever the reason (no farming)', () => {
+    expect(sessionTokens(log('2026-10-12T09:00:00', { activeSeconds: 20, endedReason: 'stopped_symptoms', completedExerciseIds: [] }))).toBe(0);
+    expect(sessionTokens(log('2026-10-12T09:00:00', { activeSeconds: 600, endedReason: 'stopped_user', completedExerciseIds: ['a', 'b'] }))).toBe(0);
   });
 
   it('a session under a minute with no symptoms earns nothing', () => {

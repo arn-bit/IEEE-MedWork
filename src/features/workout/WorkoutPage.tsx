@@ -159,6 +159,10 @@ export function WorkoutPage() {
     return (
       <div className="stack" style={{ maxWidth: 820 }}>
         <PageHead eyebrow="Tracking" title="How would you like to track reps?" />
+        <Callout tone="warn" title="If you feel any discomfort, stop">
+          Stop straight away if you feel pain, dizziness, chest tightness, unusual breathlessness or anything that doesn’t feel right, and rest. Tokens and counts are never worth pushing through discomfort. This app gives general
+          fitness guidance only, not medical advice. If symptoms continue, speak to a doctor or physiotherapist.
+        </Callout>
         <div className="grid-2">
           <div className="card stack">
             <div className="row" style={{ gap: 8 }}>
@@ -334,7 +338,7 @@ export function WorkoutPage() {
       ) : (
         <div className="card stack">
           <Callout tone="ok" title="Saved">
-            Logged on this device. {log.endedReason !== 'completed' ? 'Ending early still counts as showing up.' : ''}
+            Logged on this device. {log.endedReason !== 'completed' ? 'Ending early is always okay and still counts toward your streak, but it doesn’t earn tokens.' : ''}
           </Callout>
           <div className="token-earned" role="status">
             <span className="coin" aria-hidden="true">
@@ -346,7 +350,7 @@ export function WorkoutPage() {
                   <strong>+{earnedTokens} tokens</strong> for the minigames.
                 </>
               ) : (
-                <>No extra tokens this time: you’ve already done every workout in your plan this week. Rest is part of the plan.</>
+                <>{log.endedReason !== 'completed' ? 'No tokens for a workout you ended early, and that’s okay. Listening to your body comes first.' : 'No extra tokens this time: you’ve already done every workout in your plan this week. Rest is part of the plan.'}</>
               )}
             </span>
             <Link to="/challenges" className="btn btn-secondary btn-sm">

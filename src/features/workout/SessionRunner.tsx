@@ -407,6 +407,9 @@ export function SessionRunner({
               <span className="small muted">{describePrescription(rx)}</span>
               <p className="small">{ex.startPosition}</p>
               {info ? <p className="tiny muted">Camera: {info.setupHint}</p> : null}
+              <p className="tiny fs-warn" role="note">
+                <strong>If you feel any discomfort, stop.</strong> General fitness guidance, not medical advice.
+              </p>
               {statusPill}
               <div className="row">
                 <button className="btn btn-primary btn-lg" onClick={beginWork} disabled={trackerStatus !== 'running'}>
@@ -587,6 +590,9 @@ export function SessionRunner({
 
           {phase === 'intro' && (
             <div className="stack fade-in">
+              <p className="small" role="note">
+                <strong>If you feel any discomfort, stop.</strong> General fitness guidance, not medical advice.
+              </p>
               <div className="grid-2">
                 <FigureDemo exerciseId={ex.id} />
                 <div className="stack-sm">

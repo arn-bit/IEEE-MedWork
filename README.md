@@ -57,7 +57,7 @@ Open http://localhost:5180 and choose **Build my plan**. Camera tracking needs `
   - Activity minutes against WHO/CDC targets, with logging for other activity.
   - Effort ratings and history.
   - Rule-based "ready to progress" hints, held back after symptom stops.
-- **Challenges:** achievements for consistency, learning and choosing rest; a personal goal; an opt-in friends leaderboard using share codes (no health data, youth never compared with adults, private mode); and minigames you play with **tokens** earned from your workouts (Steady Stance, Reaction Reach, Memory Match; the Move Smart Quiz is free). Tokens reward showing up for your own plan, never extra volume, and a weekly garden grows with your consistency.
+- **Challenges:** achievements for consistency, learning and choosing rest; a personal goal; an opt-in friends leaderboard using share codes (no health data, youth never compared with adults, private mode); and minigames you play with **tokens** earned from your workouts (Steady Stance, Reaction Reach, Memory Match; the Move Smart Quiz is free). Tokens reward finished workouts in your own plan, never extra volume or pushing through discomfort (ending early earns none), and a weekly garden grows with your consistency.
 - **Privacy:** no account, server, analytics or CDN. A CSP blocks all third-party connections. Includes JSON export, delete-everything, a "keep fewer health details" mode, offline support, and a printable summary for a health professional.
 - **Accessibility:** seated-only plans, large text, high contrast, reduced motion, keyboard navigation, on-device spoken cues, and axe-tested light and dark themes.
 

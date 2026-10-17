@@ -77,8 +77,7 @@ export function ChallengesPage() {
           </Link>
         </div>
         <p className="small muted">
-          Each workout earns {TOKEN_RULES.base} tokens plus {TOKEN_RULES.perExercise} per exercise you finish. Only the workouts in your own plan count each week, and a session you stop because you didn’t feel right still earns the
-          full reward. Choosing to rest earns {TOKEN_RULES.perRestChoice}.
+          Each workout earns {TOKEN_RULES.base} tokens plus {TOKEN_RULES.perExercise} per exercise you finish. Only finished workouts earn tokens, and only the workouts in your own plan count each week. If you feel any discomfort, stop: tokens are never worth pushing through pain. Choosing to rest earns {TOKEN_RULES.perRestChoice}.
         </p>
         <Garden plots={plots} />
         {tokens.earned === 0 ? <Scene name="bloom" className="scene-small" /> : null}

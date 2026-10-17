@@ -41,7 +41,7 @@ export function TokenGate({ game, cost, title, blurb, children }: { game: string
         </div>
         {short > 0 ? (
           <Callout tone="info" title={`${short} more token${short === 1 ? '' : 's'} needed`}>
-            Finishing a workout earns {TOKEN_RULES.base}–{TOKEN_RULES.base + TOKEN_RULES.maxExerciseBonus} tokens, and so does a session you end early because you didn’t feel right. Choosing to rest earns {TOKEN_RULES.perRestChoice}.
+            Finishing a workout earns {TOKEN_RULES.base}–{TOKEN_RULES.base + TOKEN_RULES.maxExerciseBonus} tokens, once you finish it. If anything feels uncomfortable, stop; that’s always the right call. Choosing to rest earns {TOKEN_RULES.perRestChoice}.
           </Callout>
         ) : (
           <p className="small muted">Ready when you are. Games are short, gentle, and always optional.</p>
