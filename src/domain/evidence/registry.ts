@@ -1,0 +1,366 @@
+import type { EvidenceSource } from '../types';
+
+/**
+ * Evidence registry. Every record here was checked on `lastChecked` (see SAFETY_AND_EVIDENCE.md §3
+ * for how). `supports` states the specific claim the app relies on — sources are not interchangeable.
+ * Do not add a record without reading the source.
+ */
+const CHECKED = '2026-10-16';
+
+export const EVIDENCE: readonly EvidenceSource[] = [
+  {
+    id: 'who-2020',
+    title: 'WHO guidelines on physical activity and sedentary behaviour',
+    organization: 'World Health Organization',
+    authors: 'Summary paper: Bull FC, Al-Ansari SS, Biddle S, Borodulin K, et al. Br J Sports Med 2020;54:1451–1462',
+    published: '2020-11-25',
+    url: 'https://www.who.int/publications/i/item/9789240015128',
+    doi: '10.1136/bjsports-2020-102955',
+    kind: 'guideline',
+    supports:
+      'Adults: 150–300 min/week moderate or 75–150 min/week vigorous aerobic activity; regular muscle strengthening for all age groups; some physical activity is better than none; includes recommendations for people living with chronic conditions or disability and for pregnancy/postpartum.',
+    population: 'Children, adolescents, adults, older adults, pregnant/postpartum women, people with chronic conditions or disability',
+    limitations: 'Population-level public-health guidance; not an individual prescription. Evidence was insufficient to set a sedentary-time threshold.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'cdc-adults',
+    title: 'Physical Activity Guidelines for Adults',
+    organization: 'U.S. Centers for Disease Control and Prevention',
+    published: '2023-12-20',
+    url: 'https://www.cdc.gov/physical-activity-basics/guidelines/adults.html',
+    kind: 'guideline',
+    supports:
+      '150 min/week moderate (or 75 min vigorous) aerobic activity plus muscle strengthening of all major muscle groups on at least 2 days/week; activity can be spread across the week in smaller chunks; some activity is better than none.',
+    population: 'Adults 18–64',
+    limitations: 'General guidance for the U.S. population; does not address individual medical conditions.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'cdc-children',
+    title: 'Physical Activity Guidelines for Children and Adolescents',
+    organization: 'U.S. Centers for Disease Control and Prevention',
+    published: '2025-12-04',
+    url: 'https://www.cdc.gov/physical-activity-basics/guidelines/children.html',
+    kind: 'guideline',
+    supports:
+      'Ages 6–17: at least 60 min/day moderate-to-vigorous activity; muscle- and bone-strengthening activity each on at least 3 days/week (e.g. climbing, push-ups). Ages 3–5 should be active throughout the day through play.',
+    population: 'Children 3–17',
+    limitations: 'Not specific to supervised resistance training technique; see AAP statement.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'cdc-older',
+    title: 'Physical Activity Guidelines for Older Adults',
+    organization: 'U.S. Centers for Disease Control and Prevention',
+    published: '2025-12-04',
+    url: 'https://www.cdc.gov/physical-activity-basics/guidelines/older-adults.html',
+    kind: 'guideline',
+    supports:
+      'Adults 65+: 150 min/week moderate aerobic activity, muscle strengthening on at least 2 days/week, plus balance activities (e.g. heel-to-toe walking, standing from a seated position). Be as active as abilities and conditions allow.',
+    population: 'Adults 65+',
+    limitations: 'No set frequency given for balance activities.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'cdc-intensity',
+    title: 'Measuring Physical Activity Intensity',
+    organization: 'U.S. Centers for Disease Control and Prevention',
+    published: '2025-12-04',
+    url: 'https://www.cdc.gov/physical-activity-basics/measuring/index.html',
+    kind: 'guideline',
+    supports:
+      'Relative intensity on a 0–10 scale (0 = sitting, 10 = maximal): moderate ≈ 5–6, vigorous begins ≈ 7–8. Talk test: moderate = can talk but not sing.',
+    population: 'General population',
+    limitations: 'Self-rated effort is subjective.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'hhs-pag-2018',
+    title: 'Physical Activity Guidelines for Americans, 2nd edition',
+    organization: 'U.S. Department of Health and Human Services (ODPHP)',
+    published: '2018',
+    url: 'https://odphp.health.gov/our-work/nutrition-physical-activity/physical-activity-guidelines/current-guidelines',
+    kind: 'guideline',
+    supports: 'The national U.S. evidence-based physical activity guidelines on which the CDC summaries are based.',
+    population: 'Ages 3 and older',
+    limitations: 'Population-level guidance.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'acsm-2011',
+    title:
+      'Quantity and Quality of Exercise for Developing and Maintaining Cardiorespiratory, Musculoskeletal, and Neuromotor Fitness in Apparently Healthy Adults (ACSM Position Stand)',
+    organization: 'American College of Sports Medicine',
+    authors: 'Garber CE, Blissmer B, Deschenes MR, Franklin BA, et al. Med Sci Sports Exerc 2011;43(7):1334–1359',
+    published: '2011-07',
+    url: 'https://doi.org/10.1249/MSS.0b013e318213fefb',
+    doi: '10.1249/MSS.0b013e318213fefb',
+    kind: 'position_stand',
+    supports:
+      'Resistance exercise for major muscle groups and neuromotor (balance, agility, coordination) exercise on 2–3 days/week; flexibility exercises totalling ~60 s per exercise on ≥2 days/week; programs should be modified to habitual activity, physical function, health status and goals; less than the recommended amount still benefits.',
+    population: 'Apparently healthy adults; may apply to adults with chronic disease or disability when evaluated and advised by a health professional',
+    limitations: 'Published 2011; addresses apparently healthy adults.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'acsm-rt-2009',
+    title: 'Progression Models in Resistance Training for Healthy Adults (ACSM Position Stand)',
+    organization: 'American College of Sports Medicine',
+    authors: 'Med Sci Sports Exerc 2009;41(3):687–708',
+    published: '2009-03',
+    url: 'https://doi.org/10.1249/MSS.0b013e3181915670',
+    doi: '10.1249/MSS.0b013e3181915670',
+    kind: 'position_stand',
+    supports:
+      'Novices: loads corresponding to 8–12 repetitions; 2–3 days/week; moderate contraction velocity (1–2 s up, 1–2 s down); 1–2 min rest for moderate (6–12 RM) loading; progress when 1–2 reps above target can be completed.',
+    population: 'Healthy adults',
+    limitations: 'Written for loaded resistance training; applying rep ranges to bodyweight exercises is an extrapolation.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'acsm-screening-2015',
+    title: "Updating ACSM's Recommendations for Exercise Preparticipation Health Screening",
+    organization: 'American College of Sports Medicine',
+    authors: 'Riebe D, Franklin BA, Thompson PD, Garber CE, et al. Med Sci Sports Exerc 2015;47(11):2473–2479',
+    published: '2015-11',
+    url: 'https://doi.org/10.1249/MSS.0000000000000664',
+    doi: '10.1249/MSS.0000000000000664',
+    kind: 'position_stand',
+    supports:
+      'Preparticipation screening based on (1) current physical activity, (2) signs/symptoms or known cardiovascular, metabolic or renal disease, and (3) desired intensity; exercise-related cardiovascular events are often preceded by warning signs or symptoms.',
+    population: 'Adults beginning or progressing exercise',
+    limitations: 'The app implements a simplified, conservative interpretation; it is not the full ACSM algorithm and not a clinical assessment.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'aap-resistance-2020',
+    title: 'Resistance Training for Children and Adolescents (AAP Clinical Report)',
+    organization: 'American Academy of Pediatrics',
+    authors: 'Stricker PR, Faigenbaum AD, McCambridge TM; Council on Sports Medicine and Fitness. Pediatrics 2020;145(6):e20201011',
+    published: '2020-06',
+    url: 'https://doi.org/10.1542/peds.2020-1011',
+    doi: '10.1542/peds.2020-1011',
+    kind: 'position_stand',
+    supports:
+      'Reviews benefits and risks of resistance training for youth; resistance training is an appropriate part of youth fitness when properly designed and supervised.',
+    population: 'Children and adolescents',
+    limitations: 'The app applies only a conservative subset (bodyweight/light bands, technique first, supervision). Specific youth rep schemes in the app are product choices.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'cochrane-falls-2019',
+    title: 'Exercise for preventing falls in older people living in the community',
+    organization: 'Cochrane',
+    authors: 'Sherrington C, Fairhall NJ, Wallbank GK, Tiedemann A, et al. Cochrane Database Syst Rev 2019;1:CD012424',
+    published: '2019-01-31',
+    url: 'https://doi.org/10.1002/14651858.CD012424.pub2',
+    doi: '10.1002/14651858.CD012424.pub2',
+    kind: 'systematic_review',
+    supports:
+      'Exercise reduces the rate of falls by about 23% in community-dwelling people aged 60+ (high-certainty evidence); balance and functional exercises are effective.',
+    population: 'Community-dwelling adults 60+',
+    limitations: 'Excludes trials focused on specific conditions such as stroke.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'acog-pregnancy-2020',
+    title: 'Physical Activity and Exercise During Pregnancy and the Postpartum Period (Committee Opinion No. 804)',
+    organization: 'American College of Obstetricians and Gynecologists',
+    authors: 'Obstet Gynecol 2020;135(4):e178–e188',
+    published: '2020-04',
+    url: 'https://doi.org/10.1097/AOG.0000000000003772',
+    doi: '10.1097/AOG.0000000000003772',
+    kind: 'position_stand',
+    supports:
+      'In the absence of obstetric or medical complications or contraindications, physical activity in pregnancy is safe and desirable; some modification may be needed; obstetric care providers should evaluate patients.',
+    population: 'Pregnant and postpartum women',
+    limitations: 'The app does not assess contraindications; it defers to the obstetric care provider.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-adults',
+    title: 'Physical activity guidelines for adults aged 19 to 64',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2024-05-22',
+    url: 'https://www.nhs.uk/live-well/exercise/exercise-guidelines/physical-activity-guidelines-for-adults-aged-19-to-64/',
+    kind: 'guideline',
+    supports:
+      'Speak to a GP first if you have not exercised for some time or have a medical condition or concern; activity and intensity should suit your fitness level.',
+    population: 'Adults 19–64',
+    limitations: 'UK guidance; GP is the UK primary-care route.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-older',
+    title: 'Physical activity guidelines for older adults',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2024-08-15',
+    url: 'https://www.nhs.uk/live-well/exercise/exercise-guidelines/physical-activity-guidelines-older-adults/',
+    kind: 'guideline',
+    supports:
+      'Adults 65+: activities that improve strength, balance and flexibility on at least 2 days a week; see a GP first if you have not exercised in a while or have a medical condition; strength and balance exercises can help people who have fallen or worry about falling feel steadier.',
+    population: 'Adults 65+',
+    limitations: 'UK guidance.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-children',
+    title: 'Physical activity guidelines for children and young people',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2024-10-23',
+    url: 'https://www.nhs.uk/live-well/exercise/physical-activity-guidelines-children-and-young-people/',
+    kind: 'guideline',
+    supports:
+      'Ages 5–18: average 60 min/day moderate-to-vigorous activity; muscle- and bone-strengthening activities; young people can do press-ups and resistance exercises, with supervision for weights.',
+    population: 'Ages 5–18',
+    limitations: 'UK guidance.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-strength',
+    title: 'Strength exercises',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2024-02-28',
+    url: 'https://www.nhs.uk/live-well/exercise/strength-exercises/',
+    kind: 'guideline',
+    supports:
+      'Home strength exercises using a sturdy chair or wall (sit-to-stand, mini squats, calf raises, sideways leg lift, leg extension, wall press-up, biceps curl), starting with about 5 slow repetitions and building up slowly.',
+    population: 'Adults, including people new to exercise',
+    limitations: 'Instructional page; Medical Workout paraphrases rather than copies it.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-sitting',
+    title: 'Sitting exercises',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2024-01-18',
+    url: 'https://www.nhs.uk/live-well/exercise/sitting-exercises/',
+    kind: 'guideline',
+    supports:
+      'Gentle seated exercises (chest stretch, upper-body twist, hip marching, ankle stretch, neck rotation) for people who have not exercised much recently, using a stable chair without wheels or arms; check with a GP if unsure.',
+    population: 'Adults with limited mobility or new to exercise',
+    limitations: 'Instructional page.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-balance',
+    title: 'Balance exercises',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2023-11-07',
+    url: 'https://www.nhs.uk/live-well/exercise/balance-exercises/',
+    kind: 'guideline',
+    supports:
+      'Balance exercises (sideways walking, grapevine, heel-to-toe walk, one-leg stand, step-up) done near a wall or chair for support; at least twice a week; build up gradually.',
+    population: 'Adults, including older adults',
+    limitations: 'Instructional page; next review due 2026-11-07.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-flexibility',
+    title: 'Flexibility exercises',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2023-11-20',
+    url: 'https://www.nhs.uk/live-well/exercise/flexibility-exercises/',
+    kind: 'guideline',
+    supports: 'Gentle flexibility exercises (neck rotation, neck stretch, sideways bend, calf stretch), moving gently, at least twice a week.',
+    population: 'Adults',
+    limitations: 'Instructional page; next review due 2026-11-20.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-warmup',
+    title: 'How to warm up before exercising',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2026-06-24',
+    url: 'https://www.nhs.uk/live-well/exercise/how-to-warm-up-before-exercising/',
+    kind: 'guideline',
+    supports: 'Warm up for at least 6 minutes (e.g. marching on the spot, heel digs, knee lifts, shoulder rolls, knee bends).',
+    population: 'General population',
+    limitations: 'Duration is practical advice; evidence on warm-up effects is mixed.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-heart-attack',
+    title: 'Heart attack',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2026-03-31',
+    url: 'https://www.nhs.uk/conditions/heart-attack/',
+    kind: 'guideline',
+    supports:
+      'Call the emergency number for chest pain that feels tight or squeezing, pain spreading to arms/neck/jaw, severe breathing difficulty, or if someone has collapsed; do not drive yourself.',
+    population: 'General population',
+    limitations: 'UK emergency number is 999; the app shows a generic "local emergency number" plus examples.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'nhs-stroke',
+    title: 'Stroke — symptoms',
+    organization: 'NHS (UK)',
+    published: 'Last reviewed 2024-09-12',
+    url: 'https://www.nhs.uk/conditions/stroke/symptoms/',
+    kind: 'guideline',
+    supports: 'FAST: face dropped, arm weakness, speech problems — call the emergency number immediately, even if symptoms stop.',
+    population: 'General population',
+    limitations: 'UK emergency number is 999.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'parq-plus',
+    title: 'PAR-Q+ (Physical Activity Readiness Questionnaire for Everyone)',
+    organization: 'PAR-Q+ Collaboration',
+    published: 'Current edition on site',
+    url: 'https://eparmedx.com/',
+    kind: 'guideline',
+    supports: 'A widely used validated pre-activity questionnaire people can complete and share with a health professional.',
+    population: 'General population',
+    limitations: 'Medical Workout does not reproduce the PAR-Q+; it links to it as an additional resource.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'mediapipe-model-card',
+    title: 'Model Card: BlazePose GHUM 3D (MediaPipe Pose Landmarker)',
+    organization: 'Google',
+    published: 'Model card PDF',
+    url: 'https://storage.googleapis.com/mediapipe-assets/Model%20Card%20BlazePose%20GHUM%203D.pdf',
+    kind: 'model_card',
+    supports:
+      'Intended uses include fitness and repetition counting and pose angle measurement; out of scope: multiple people, people farther than ~4 m, head not visible; quality degrades with poor light, noise, motion and occlusion. Licensed Apache-2.0.',
+    population: 'Single-person video on mobile, desktop and browser',
+    limitations: 'Not a medical device; 2D/3D estimates are approximate and not clinically validated for biomechanics.',
+    lastChecked: CHECKED,
+  },
+  {
+    id: 'heuristic-conservative',
+    title: 'Medical Workout product safety heuristic',
+    organization: 'Medical Workout (this app)',
+    published: '2026-10-16',
+    url: 'https://www.nhs.uk/live-well/exercise/exercise-guidelines/physical-activity-guidelines-for-adults-aged-19-to-64/',
+    kind: 'product_heuristic',
+    supports:
+      'A conservative rule chosen by the app (e.g. leaving out exercises that load a painful area, or excluding lying-on-back exercises in pregnancy). It is NOT a claim that a guideline prescribes it. Linked page: NHS advice to speak to a GP with a medical condition or concern.',
+    population: 'App users',
+    limitations: 'Product judgment, not evidence. Errs toward caution and may exclude exercises that would be suitable for you.',
+    lastChecked: CHECKED,
+  },
+];
+
+const byId = new Map(EVIDENCE.map((e) => [e.id, e]));
+
+export function getEvidence(id: string): EvidenceSource | undefined {
+  return byId.get(id);
+}
+
+export function requireEvidence(id: string): EvidenceSource {
+  const e = byId.get(id);
+  if (!e) throw new Error(`Unknown evidence id: ${id}`);
+  return e;
+}
+
+export const EVIDENCE_KIND_LABEL: Record<EvidenceSource['kind'], string> = {
+  guideline: 'Public-health guideline',
+  position_stand: 'Professional position stand',
+  systematic_review: 'Systematic review',
+  model_card: 'Model documentation',
+  product_heuristic: 'Product heuristic (not evidence)',
+};

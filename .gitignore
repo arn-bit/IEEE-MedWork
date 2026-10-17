@@ -1,0 +1,9 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.log
+# Model assets are reproducible with `npm run setup:models` (manifest is kept for verification)
+public/models/*.task
+public/mediapipe/wasm/
+.vitest/

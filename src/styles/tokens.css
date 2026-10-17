@@ -1,0 +1,109 @@
+/* Medical Workout design tokens. Light by default; dark follows the OS. */
+:root {
+  --bg: #f5f4ef;
+  --surface: #ffffff;
+  --surface-2: #eeece5;
+  --surface-3: #e4e1d8;
+  --ink: #13201c;
+  --ink-2: #3f4c47;
+  --ink-3: #56625d;
+  --line: #dad6cc;
+  --line-strong: #c3beb1;
+
+  --brand: #0d6652;
+  --brand-hover: #0a5443;
+  --brand-ink: #ffffff;
+  --brand-soft: #dbeee7;
+  --brand-softer: #edf6f2;
+
+  --accent: #a4481f;
+  --accent-soft: #f7e4da;
+
+  --info: #1f4f86;
+  --info-soft: #e4edf8;
+  --warn: #8a5300;
+  --warn-soft: #fff0d4;
+  --danger: #a8221a;
+  --danger-ink: #ffffff;
+  --danger-soft: #fce9e7;
+  --ok: #17663f;
+  --ok-soft: #dff1e6;
+
+  --focus: #1d6fd6;
+  --shadow-1: 0 1px 2px rgb(19 32 28 / 0.06), 0 1px 1px rgb(19 32 28 / 0.04);
+  --shadow-2: 0 6px 20px -8px rgb(19 32 28 / 0.18), 0 2px 6px rgb(19 32 28 / 0.06);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  --font: 'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Roboto, Arial, sans-serif;
+  --font-display: 'Inter Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --text-base: 16px;
+  --dur: 180ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0e1412;
+    --surface: #161e1b;
+    --surface-2: #1d2724;
+    --surface-3: #25312d;
+    --ink: #e7eeeb;
+    --ink-2: #b9c4bf;
+    --ink-3: #8d9994;
+    --line: #2b3733;
+    --line-strong: #3a4843;
+    --brand: #52c2a2;
+    --brand-hover: #6fd2b5;
+    --brand-ink: #04211a;
+    --brand-soft: #173a31;
+    --brand-softer: #13261f;
+    --accent: #f08c5f;
+    --accent-soft: #3a2218;
+    --info: #8db8ee;
+    --info-soft: #172a40;
+    --warn: #f0be6a;
+    --warn-soft: #33270f;
+    --danger: #f3897f;
+    --danger-ink: #2a0805;
+    --danger-soft: #3b1714;
+    --ok: #74d39d;
+    --ok-soft: #13311f;
+    --focus: #7bb2ff;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-2: 0 10px 28px -10px rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-text='large'] {
+  --text-base: 19px;
+}
+
+:root[data-contrast='high'] {
+  --ink-2: var(--ink);
+  --ink-3: var(--ink);
+  --line: var(--ink-3);
+  --line-strong: var(--ink);
+}
+
+:root[data-motion='reduce'] {
+  --dur: 0ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+}
