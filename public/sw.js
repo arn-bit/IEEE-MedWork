@@ -1,5 +1,5 @@
 /*
- * Medical Workout service worker — offline support.
+ * Verimove service worker — offline support.
  * Caches only this app's own files (HTML, JS, CSS, pose model, WASM runtime). It never caches
  * or sees personal data (that lives in localStorage) and never contacts another origin.
  */

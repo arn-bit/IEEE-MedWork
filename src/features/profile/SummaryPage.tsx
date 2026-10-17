@@ -53,10 +53,10 @@ export function SummaryPage() {
       </Callout>
 
       <header className="stack-sm">
-        <span className="eyebrow">Medical Workout · exercise summary</span>
+        <span className="eyebrow">Verimove · exercise summary</span>
         <h1>Summary for a health professional</h1>
         <p className="small muted">
-          Generated {now.toLocaleString()}. Self-reported information from a general fitness app; not a clinical record. Medical Workout does not diagnose or treat.
+          Generated {now.toLocaleString()}. Self-reported information from a general fitness app; not a clinical record. Verimove does not diagnose or treat.
         </p>
       </header>
 

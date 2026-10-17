@@ -7,7 +7,8 @@ test.describe('onboarding', () => {
     const w = watch(page);
     await page.goto('/');
     await expect(page).toHaveURL(/\/welcome$/);
-    await page.getByRole('link', { name: 'Build my plan' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: /Movement you can verify/ })).toBeVisible();
+    await page.getByRole('button', { name: /Create my private profile/ }).first().click();
 
     await page.getByLabel('Nickname (optional)').fill('Alex');
     await page.getByRole('spinbutton', { name: 'Age' }).fill('41');
@@ -27,7 +28,10 @@ test.describe('onboarding', () => {
     await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByRole('button', { name: 'Continue' }).click(); // equipment defaults
     await page.getByRole('button', { name: 'Continue' }).click(); // preferences
-    await page.getByRole('button', { name: 'Skip — none apply' }).click();
+    await page.getByRole('button', { name: 'No to all' }).click(); // health → "in your words"
+    await expect(page.getByRole('heading', { level: 1, name: 'In your words' })).toBeVisible();
+    await page.getByRole('button', { name: 'Continue' }).click(); // → review
+    await expect(page.getByRole('heading', { name: 'Ready, with no safety adjustments needed' })).toBeVisible();
 
     const create = page.getByRole('button', { name: 'Create my plan' });
     await expect(create).toBeDisabled();
@@ -56,7 +60,7 @@ test.describe('onboarding', () => {
     await page.getByRole('checkbox', { name: 'Chest pain, pressure or tightness' }).check();
     await expect(page.getByRole('heading', { name: 'Get urgent medical help now' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Continue' })).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Skip — none apply' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'No to all' })).toHaveCount(0);
   });
 
   test('answers needing professional assessment get a referral (no plan), and the clearance button leads to confirmation', async ({ page }) => {
@@ -67,7 +71,9 @@ test.describe('onboarding', () => {
     }
     const q = page.getByRole('group', { name: /chest discomfort, unusual breathlessness/ });
     await q.getByRole('radio', { name: 'Yes' }).check();
-    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click(); // → in your words
+    await page.getByRole('button', { name: 'Continue' }).click(); // → review
+    await expect(page.getByRole('heading', { name: 'A professional should guide you first' })).toBeVisible();
     await page.getByRole('checkbox', { name: /I understand this is general fitness guidance/ }).check();
     await page.getByRole('checkbox', { name: /Save my answers on this device/ }).check();
     await page.getByRole('button', { name: 'Create my plan' }).click();
@@ -214,7 +220,7 @@ test.describe('privacy', () => {
     await seed(page);
     await page.goto('/profile');
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /Export my data/ }).click()]);
-    expect(download.suggestedFilename()).toMatch(/^medical-workout-export-\d{4}-\d{2}-\d{2}\.json$/);
+    expect(download.suggestedFilename()).toMatch(/^verimove-export-\d{4}-\d{2}-\d{2}\.json$/);
 
     await page.getByRole('button', { name: /Delete all my data/ }).click();
     const del = page.getByRole('button', { name: 'Delete everything' });
@@ -300,7 +306,7 @@ test.describe('responsive and accessible', () => {
           // Bottom tab bar: one compact row; desktop-only brand/footer hidden.
           const navBox = await page.getByRole('navigation', { name: 'Main' }).boundingBox();
           expect(navBox!.height).toBeLessThan(100);
-          await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Medical Workout home' })).toBeHidden();
+          await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Verimove home' })).toBeHidden();
         }
       }
     });
@@ -315,7 +321,7 @@ test.describe('responsive and accessible', () => {
 
   test('axe finds no serious or critical violations on key screens', async ({ page }) => {
     await seed(page);
-    for (const path of ['/welcome', '/', '/plan', '/workout', '/challenges', '/profile', '/evidence']) {
+    for (const path of ['/welcome', '/onboarding', '/', '/plan', '/workout', '/challenges', '/profile', '/evidence', '/about']) {
       if (path === '/welcome') await page.context().clearCookies();
       await page.goto(path);
       await page.getByRole('heading', { level: 1 }).first().waitFor();

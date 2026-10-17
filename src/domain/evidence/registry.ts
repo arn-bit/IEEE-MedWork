@@ -227,7 +227,7 @@ export const EVIDENCE: readonly EvidenceSource[] = [
     supports:
       'Home strength exercises using a sturdy chair or wall (sit-to-stand, mini squats, calf raises, sideways leg lift, leg extension, wall press-up, biceps curl), starting with about 5 slow repetitions and building up slowly.',
     population: 'Adults, including people new to exercise',
-    limitations: 'Instructional page; Medical Workout paraphrases rather than copies it.',
+    limitations: 'Instructional page; Verimove paraphrases rather than copies it.',
     lastChecked: CHECKED,
   },
   {
@@ -314,7 +314,7 @@ export const EVIDENCE: readonly EvidenceSource[] = [
     kind: 'guideline',
     supports: 'A widely used validated pre-activity questionnaire people can complete and share with a health professional.',
     population: 'General population',
-    limitations: 'Medical Workout does not reproduce the PAR-Q+; it links to it as an additional resource.',
+    limitations: 'Verimove does not reproduce the PAR-Q+; it links to it as an additional resource.',
     lastChecked: CHECKED,
   },
   {
@@ -332,8 +332,8 @@ export const EVIDENCE: readonly EvidenceSource[] = [
   },
   {
     id: 'heuristic-conservative',
-    title: 'Medical Workout product safety heuristic',
-    organization: 'Medical Workout (this app)',
+    title: 'Verimove product safety heuristic',
+    organization: 'Verimove (this app)',
     published: '2026-10-16',
     url: 'https://www.nhs.uk/live-well/exercise/exercise-guidelines/physical-activity-guidelines-for-adults-aged-19-to-64/',
     kind: 'product_heuristic',

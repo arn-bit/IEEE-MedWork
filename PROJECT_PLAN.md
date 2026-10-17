@@ -1,8 +1,8 @@
-# Medical Workout — Project Plan
+# Verimove — Project Plan
 
 ## 1. Starting point (Stage A inspection, 2026-10-16)
 
-- Working folder `C:\Users\aarin\New folder` held one unrelated project, `fitcoach-ai/` (vanilla TS, soccer and coaching features). **Nothing from it was reused.** Medical Workout is a new project in `medical-workout/`, with its own design system and architecture.
+- Working folder `C:\Users\aarin\New folder` held one unrelated project, `fitcoach-ai/` (vanilla TS, soccer and coaching features). **Nothing from it was reused.** Verimove is a new project in `medical-workout/`, with its own design system and architecture.
 - Environment: Windows 11, Node 22.17, npm 10.9, Python 3.11, git. There's no backend infrastructure, accounts or cloud database, so the build is **local-first**.
 
 ## 2. Product requirements (ranked)

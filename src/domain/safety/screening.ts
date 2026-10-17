@@ -176,12 +176,22 @@ export function screen(profile: Pick<Profile, 'ageYears' | 'activityLevel' | 'he
       'product_heuristic',
     );
   }
-  if (h.severeOrWorseningPain) {
+  const severeArea = h.painAreas.find((a) => h.painSeverity?.[a] === 'severe');
+  if (h.severeOrWorseningPain || severeArea) {
     assessment(
       'SCREEN-05',
       'Severe, new or worsening pain',
-      'Pain that is severe, new and unexplained, or getting worse should be assessed by a doctor or physiotherapist. This app cannot tell whether exercise is suitable for it.',
+      `Pain that is severe, new and unexplained, or getting worse${severeArea ? ` (you rated your ${areaLabel(severeArea)} pain as severe)` : ''} should be assessed by a doctor or physiotherapist. This app cannot tell whether exercise is suitable for it.`,
       ['nhs-adults', 'heuristic-conservative'],
+      'product_heuristic',
+    );
+  }
+  if ((h.needsClinician ?? []).length > 0) {
+    assessment(
+      'SCREEN-08',
+      'Something you mentioned needs your care team',
+      `You mentioned ${(h.needsClinician ?? []).join(', ')}. Your care team should guide whether and how to exercise. This app cannot tailor a plan for it.`,
+      ['heuristic-conservative'],
       'product_heuristic',
     );
   }
@@ -192,7 +202,7 @@ export function screen(profile: Pick<Profile, 'ageYears' | 'activityLevel' | 'he
       outcome: 'needs_assessment',
       title: 'You are in a rehab program',
       message:
-        'Please follow the program your clinician or physiotherapist designed. Medical Workout does not replace individualized rehabilitation. You can still use the minigames, quiz, and evidence library.',
+        'Please follow the program your clinician or physiotherapist designed. Verimove does not replace individualized rehabilitation. You can still use the minigames, quiz, and evidence library.',
       evidenceIds: ['heuristic-conservative'],
       evidenceKind: 'product_heuristic',
     });

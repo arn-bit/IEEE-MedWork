@@ -30,7 +30,7 @@ function renderAt(path: string, data?: AppData) {
 describe('app integration (jsdom)', () => {
   it('redirects a new user to the welcome page', () => {
     renderAt('/');
-    expect(screen.getByRole('heading', { level: 1, name: /shows its work/ })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /verify/ })).toBeInTheDocument();
   });
 
   it('renders every main area for a user with a plan, each with a level-1 heading', async () => {

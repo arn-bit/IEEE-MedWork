@@ -26,7 +26,7 @@ Researched on 2026-10-16. Capabilities below come from each product's own pages,
 
 Rating key: ●●● strong, ●● adequate, ● limited, ○ absent, ? not verifiable from public sources.
 
-| Dimension | Medical Workout (this build) | Kaia | Peloton Guide | Sword | Fitbod | NHS Active 10 |
+| Dimension | Verimove (this build) | Kaia | Peloton Guide | Sword | Fitbod | NHS Active 10 |
 |---|---|---|---|---|---|---|
 | Ease of onboarding | ●● 8 short steps (~4 min), skip-able health step | ? | ● hardware + subscription | ● employer enrolment + PT intake | ●● | ●●● |
 | Personalization | ●● goals, time, equipment, age, restrictions, preferences; deterministic | ●● condition programs | ●● class-based | ●●● PT-designed | ●●● history-driven | ● walking only |
@@ -40,13 +40,13 @@ Rating key: ●●● strong, ●● adequate, ● limited, ○ absent, ? not ve
 | Safety escalation | ●●● emergency + referral rules, in-session stop | ? | ○ | ●●● clinician oversight | ○ | ● |
 | Cost | Free, open | Paid / insured | Hardware + subscription | Employer/insurer | Subscription | Free |
 
-### Where Medical Workout is weaker
+### Where Verimove is weaker
 
 - **No clinician review of content** and **no validation of camera counting on real users.** Kaia and Sword both cite studies. This is the biggest trust gap.
 - **Demonstrations are stick figures**, not instructor video. That's clear enough for setup but less engaging.
 - **There is no backend.** Friends leaderboards use share codes on an honour system, and there's no cross-device sync.
 
-### Where Medical Workout is differentiated
+### Where Verimove is differentiated
 
 - It **shows its work.** The rule trace, labelled evidence types and verified sources go further than anything else reviewed.
 - It is **conservative by design.** It refers people on instead of attempting rehab, and it never pushes through symptoms to protect a streak.

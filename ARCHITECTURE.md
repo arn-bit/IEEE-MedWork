@@ -1,6 +1,6 @@
 # Architecture
 
-Medical Workout is a **local-first single-page app** with no server, no account and no third-party network calls. Health-critical logic is pure TypeScript, separated from the UI and tested without a browser or camera.
+Verimove is a **local-first single-page app** with no server, no account and no third-party network calls. Health-critical logic is pure TypeScript, separated from the UI and tested without a browser or camera.
 
 ```
                       ┌──────────────────────────── Browser tab ────────────────────────────┐

@@ -20,6 +20,7 @@ type Action =
   | { type: 'seenAchievements'; ids: string[] }
   | { type: 'addActivity'; entry: ActivityEntry }
   | { type: 'removeActivity'; id: string }
+  | { type: 'replaceAll'; data: AppData }
   | { type: 'reset' };
 
 function reducer(state: AppData, a: Action): AppData {
@@ -57,6 +58,8 @@ function reducer(state: AppData, a: Action): AppData {
       return { ...state, activities: [...state.activities, a.entry] };
     case 'removeActivity':
       return { ...state, activities: state.activities.filter((x) => x.id !== a.id) };
+    case 'replaceAll':
+      return a.data;
     case 'reset':
       return defaultData();
   }
@@ -80,6 +83,7 @@ interface StoreValue {
   removeFriend(name: string): void;
   setPersonalGoal(goal: PersonalGoal | null): void;
   markAchievementsSeen(ids: string[]): void;
+  importData(data: AppData): void;
   addActivity(entry: ActivityEntry): void;
   removeActivity(id: string): void;
   deleteEverything(): Promise<void>;
@@ -87,7 +91,19 @@ interface StoreValue {
 
 const Ctx = createContext<StoreValue | null>(null);
 
-export function StoreProvider({ children, initial }: { children: ReactNode; initial?: AppData }) {
+export function StoreProvider({
+  children,
+  initial,
+  persist,
+  onDeleted,
+}: {
+  children: ReactNode;
+  initial?: AppData;
+  /** Custom persistence (the encrypted vault). Defaults to plain localStorage. */
+  persist?: (data: AppData) => void;
+  /** Called after "delete everything" has wiped storage. */
+  onDeleted?: () => void;
+}) {
   const loaded = useMemo<LoadResult>(() => (initial ? { data: initial, status: 'loaded' } : loadData()), [initial]);
   const [data, dispatch] = useReducer(reducer, loaded.data);
   const skipSave = useRef(false);
@@ -97,8 +113,9 @@ export function StoreProvider({ children, initial }: { children: ReactNode; init
       skipSave.current = false;
       return;
     }
-    saveData(data);
-  }, [data]);
+    if (persist) persist(data);
+    else saveData(data);
+  }, [data, persist]);
 
   const planResult = useMemo<PlanResult | null>(() => {
     if (!data.profile) return null;
@@ -147,12 +164,14 @@ export function StoreProvider({ children, initial }: { children: ReactNode; init
     removeFriend: (name) => dispatch({ type: 'removeFriend', name }),
     setPersonalGoal: (goal) => dispatch({ type: 'personalGoal', goal }),
     markAchievementsSeen: (ids) => dispatch({ type: 'seenAchievements', ids }),
+    importData: (data) => dispatch({ type: 'replaceAll', data }),
     addActivity: (entry) => dispatch({ type: 'addActivity', entry }),
     removeActivity: (id) => dispatch({ type: 'removeActivity', id }),
     deleteEverything: async () => {
       await deleteAllData();
       skipSave.current = true; // don't immediately re-write defaults
       dispatch({ type: 'reset' });
+      onDeleted?.();
     },
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

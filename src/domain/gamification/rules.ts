@@ -235,7 +235,7 @@ export type DecodeResult = { ok: true; card: ScoreCard } | { ok: false; error: s
 
 export function decodeScoreCard(code: string, now: Date): DecodeResult {
   const parts = code.trim().split('.');
-  if (parts.length !== 3 || parts[0] !== 'MW1') return { ok: false, error: 'That does not look like a Medical Workout share code.' };
+  if (parts.length !== 3 || parts[0] !== 'MW1') return { ok: false, error: 'That does not look like a Verimove share code.' };
   let payload: string;
   try {
     payload = b64urlDecode(parts[1]!);

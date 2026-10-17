@@ -6,10 +6,13 @@ import { speechAvailable } from '../../hooks/speech';
 import { CheckCard, Callout, Modal, PageHead } from '../../components/ui';
 import { Icon } from '../../components/Icon';
 import type { Pause } from '../../domain/gamification/rules';
+import { AnswerAnalysis } from '../onboarding/AnswerAnalysis';
+import { PasscodeCard } from './PasscodeCard';
+import { RestoreBackup } from '../welcome/RestoreBackup';
 
 export function ProfilePage() {
   const store = useStore();
-  const { data, paused, pause, resume, updateSettings, deleteEverything } = store;
+  const { data, paused, pause, resume, updateSettings, deleteEverything, submitProfile } = store;
   const navigate = useNavigate();
   const location = useLocation();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -20,7 +23,7 @@ export function ProfilePage() {
   const s = data.settings;
 
   useEffect(() => {
-    if (location.hash === '#privacy') document.getElementById('privacy')?.scrollIntoView();
+    if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
   }, [location.hash]);
 
   const doExport = () => {
@@ -28,7 +31,7 @@ export function ProfilePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `medical-workout-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `verimove-export-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -53,7 +56,7 @@ export function ProfilePage() {
   return (
     <div className="stack-lg fade-in">
       <PageHead eyebrow="Profile & Health" title={profile?.displayName ? profile.displayName : 'Your profile'}>
-        Your answers, settings and privacy controls. Everything here is stored only in this browser.
+        Your answers, how we read them, and your privacy controls. Everything here is stored only in this browser.
       </PageHead>
 
       {profile ? (
@@ -84,9 +87,14 @@ export function ProfilePage() {
               <dd style={{ margin: 0 }}>{profile.equipment.length ? profile.equipment.join(', ').replace(/_/g, ' ') : 'Bodyweight only'}</dd>
             </div>
           </dl>
+          {profile.goalText ? (
+            <p className="small">
+              <span className="muted">Your goal in your words:</span> “{profile.goalText}”
+            </p>
+          ) : null}
           {profile.healthMinimized ? (
             <Callout tone="info" title="Health details minimized">
-              Your individual health answers were discarded after your plan was made. Only the restrictions your plan needs are kept.
+              Your individual health answers and typed notes were discarded after your plan was made. Only the restrictions your plan needs are kept.
             </Callout>
           ) : null}
         </section>
@@ -95,6 +103,18 @@ export function ProfilePage() {
           <Link to="/onboarding">Set up your plan</Link> to see your answers here.
         </Callout>
       )}
+
+      {profile && !profile.healthMinimized ? (
+        <section className="stack" id="analysis" aria-label="How we read your answers">
+          <AnswerAnalysis
+            profile={profile}
+            onChange={(p) => {
+              // Dismissing or adding a finding rebuilds the plan from the updated answers.
+              submitProfile(p);
+            }}
+          />
+        </section>
+      ) : null}
 
       {profile ? (
         <section className="card stack" aria-labelledby="pause-h">
@@ -153,7 +173,7 @@ export function ProfilePage() {
               <li>Settings, achievements, game progress, friend codes, other activity you log</li>
               <li>App files and the pose model, cached so the app works offline (no personal data)</li>
             </ul>
-            <p className="tiny muted">Stored in this browser’s localStorage. Anyone with access to this device profile could read it, so use a device lock.</p>
+            <p className="tiny muted">Stored in this browser’s localStorage. Without a passcode, anyone who can open this browser profile could read it. Turn on the passcode lock below on a shared computer.</p>
           </div>
           <div className="stack-sm">
             <h3>Sent anywhere</h3>
@@ -168,19 +188,31 @@ export function ProfilePage() {
             </ul>
           </div>
         </div>
+        <PasscodeCard />
         <CheckCard
           checked={s.minimizeHealthData}
           onChange={(v) => updateSettings({ minimizeHealthData: v })}
           title="Keep fewer health details"
-          hint="After your next plan update, individual health answers are discarded and only plan restrictions are kept."
+          hint="After your next plan update, individual health answers and typed notes are discarded and only plan restrictions are kept."
         />
-        <div className="row">
-          <button className="btn btn-secondary" onClick={doExport}>
-            <Icon name="download" size={16} /> Export my data (JSON)
-          </button>
-          <button className="btn btn-danger" onClick={() => setConfirmDelete(true)}>
-            <Icon name="trash" size={16} /> Delete all my data
-          </button>
+        <div className="stack-sm">
+          <h3>Backup and delete</h3>
+          <div className="row">
+            <button className="btn btn-secondary" onClick={doExport}>
+              <Icon name="download" size={16} /> Export my data (JSON)
+            </button>
+            <button className="btn btn-danger" onClick={() => setConfirmDelete(true)}>
+              <Icon name="trash" size={16} /> Delete all my data
+            </button>
+          </div>
+          <details className="disclosure">
+            <summary>Restore from a backup file</summary>
+            <div className="stack-sm">
+              <p className="small muted">Restoring replaces everything currently stored on this device with the contents of the backup file. The file is read in this tab and never uploaded.</p>
+              <RestoreBackup label="Choose a backup file" />
+            </div>
+          </details>
+          <p className="tiny muted">Exports are not encrypted. They contain your health answers, so keep the file somewhere private.</p>
         </div>
       </section>
 

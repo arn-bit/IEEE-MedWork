@@ -38,6 +38,27 @@ export interface AccessibilityNeeds {
   hearingImpaired: boolean;
 }
 
+export type PainSeverity = 'mild' | 'moderate' | 'severe';
+
+/** Yes/No screening questions that also accept "Not sure" (treated cautiously, like "Yes"). */
+export type QuestionKey =
+  | 'exertionalSymptoms'
+  | 'knownCardioMetabolicRenal'
+  | 'recentSurgery'
+  | 'severeOrWorseningPain'
+  | 'inRehabProgram'
+  | 'balanceConcernOrFall';
+
+export type TextField = 'injuries' | 'conditions' | 'clinician' | 'other' | 'goal' | 'avoid';
+
+/** Things the user typed in their own words. Analysed deterministically; never sent anywhere. */
+export interface HealthFreeText {
+  injuries: string;
+  conditions: string;
+  clinician: string;
+  other: string;
+}
+
 export interface HealthAnswers {
   /** Symptoms happening right now that may indicate an emergency. */
   emergencyNow: {
@@ -62,6 +83,17 @@ export interface HealthAnswers {
   clinicianRestrictedAreas: BodyArea[];
   /** User confirms a clinician has cleared them after a previous needs_assessment outcome. */
   clinicianClearedAfterReferral: boolean;
+  /** Per-area pain level for the areas in `painAreas`. */
+  painSeverity: Partial<Record<BodyArea, PainSeverity>>;
+  /** Questions answered "Not sure". Treated like "Yes" so the app errs toward caution. */
+  unsure: QuestionKey[];
+  /** Questions the user has explicitly answered (so skipped ones can be reported). */
+  answered: QuestionKey[];
+  freeText: HealthFreeText;
+  /** Ids of text findings the user marked "not accurate". */
+  dismissedFindings: string[];
+  /** Reasons (from the user's own words) that a professional should guide exercise first. */
+  needsClinician: string[];
 }
 
 export interface Profile {
@@ -76,6 +108,10 @@ export interface Profile {
   equipment: Equipment[];
   location: Location;
   dislikedExerciseIds: string[];
+  /** Goal described in the user's own words. */
+  goalText: string;
+  /** Exercises the user typed that they'd rather avoid. */
+  avoidText: string;
   avoidPositions: Position[];
   accessibility: AccessibilityNeeds;
   health: HealthAnswers;

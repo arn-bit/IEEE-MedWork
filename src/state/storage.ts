@@ -1,6 +1,7 @@
 import type { Plan, Profile, SessionLog } from '../domain/types';
 import type { Pause, PersonalGoal, ScoreCard } from '../domain/gamification/rules';
 import type { ActivityEntry } from '../domain/plan/progression';
+import { normalizeProfile } from '../domain/profile';
 
 /**
  * Local-first persistence. Everything lives in this browser's localStorage under the `mw:` prefix.
@@ -81,7 +82,7 @@ export function sanitize(raw: unknown): AppData | null {
   const d = defaultData();
   return {
     version: 1,
-    profile: isObj(raw.profile) ? (raw.profile as unknown as Profile) : null,
+    profile: normalizeProfile(raw.profile),
     plan: isObj(raw.plan) && Array.isArray((raw.plan as Record<string, unknown>).schedule) ? (raw.plan as unknown as Plan) : null,
     sessions: Array.isArray(raw.sessions) ? (raw.sessions.filter((s) => isObj(s) && typeof s.startedAt === 'string') as SessionLog[]) : [],
     pauses: Array.isArray(raw.pauses) ? (raw.pauses.filter((p) => isObj(p) && typeof p.start === 'string') as Pause[]) : [],
@@ -136,11 +137,35 @@ export function safeLocalStorage(): Storage | null {
   }
 }
 
+export const MAX_BACKUP_BYTES = 5_000_000;
+
+export type BackupResult = { ok: true; data: AppData } | { ok: false; error: string };
+
+/**
+ * Parse a file produced by `exportJson`. Strictly validated: only known fields survive, nothing is
+ * executed, and a bad file never touches the data already on this device.
+ */
+export function parseBackup(text: string): BackupResult {
+  if (text.length > MAX_BACKUP_BYTES) return { ok: false, error: 'That file is too large to be a Verimove backup.' };
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    return { ok: false, error: 'That file isn’t a valid backup (it couldn’t be read as JSON).' };
+  }
+  const payload = isObj(raw) && isObj(raw.data) ? raw.data : raw;
+  const app = isObj(raw) ? raw.app : undefined;
+  if (app !== undefined && app !== 'Verimove' && app !== 'Medical Workout') return { ok: false, error: 'That backup is from a different app.' };
+  const data = sanitize(payload);
+  if (!data) return { ok: false, error: 'That doesn’t look like a Verimove backup, or it’s from an incompatible version.' };
+  return { ok: true, data };
+}
+
 export function exportJson(data: AppData): string {
   return JSON.stringify(
     {
       exportedAt: new Date().toISOString(),
-      app: 'Medical Workout',
+      app: 'Verimove',
       note: 'This file contains your health-related answers and workout history. Store it somewhere private.',
       data,
     },

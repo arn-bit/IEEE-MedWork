@@ -1,10 +1,10 @@
 # Safety and Evidence
 
-Medical Workout is a **general fitness** application with **medically informed safeguards**. It is **not** a doctor, physical therapist, diagnostic device or treatment program, and it does not claim HIPAA compliance, clinical certification or regulatory approval.
+Verimove is a **general fitness** application with **medically informed safeguards**. It is **not** a doctor, physical therapist, diagnostic device or treatment program, and it does not claim HIPAA compliance, clinical certification or regulatory approval.
 
 ## 1. What the app is and isn't
 
-| Category | What it means | Does Medical Workout do it? |
+| Category | What it means | Does Verimove do it? |
 |---|---|---|
 | General fitness | Public-health activity guidance (WHO, CDC, NHS) applied to everyday exercise for people without unresolved medical concerns | **Yes**, this is the core |
 | Medically informed exercise guidance | General fitness adjusted by conservative, transparent rules when someone reports a limitation (e.g. leaving out exercises that load a painful joint) or follows a clinician's restrictions | **Yes, limited.** It applies exclusions and caps and explains them. It does not judge whether exercise is right for a condition |

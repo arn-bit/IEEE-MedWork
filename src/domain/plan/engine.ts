@@ -1,5 +1,6 @@
 import { EXERCISES, getExercise } from '../exercises/library';
 import { ageBandFor, screen } from '../safety/screening';
+import { MAX_TEXT, resolveProfile } from '../safety/analyze';
 import type {
   Constraints,
   DecisionTraceEntry,
@@ -82,6 +83,11 @@ export function validateProfile(p: Partial<Profile> | null | undefined): string[
   if (!p.location || !['home', 'gym', 'outdoors'].includes(p.location)) errors.push('Choose where you will exercise.');
   if (!Array.isArray(p.dislikedExerciseIds)) errors.push('Disliked exercises list is invalid.');
   if (!p.health) errors.push('Health answers are missing.');
+  else {
+    const ft = p.health.freeText;
+    if (ft && Object.values(ft).some((v) => typeof v !== 'string' || v.length > MAX_TEXT * 2)) errors.push('Your typed health notes are too long. Please shorten them.');
+  }
+  if ((p.goalText !== undefined && typeof p.goalText !== 'string') || (p.avoidText !== undefined && typeof p.avoidText !== 'string')) errors.push('Typed goal or preferences are invalid.');
   if (!p.accessibility) errors.push('Accessibility answers are missing.');
   if (p.consentGiven !== true) errors.push('Consent is needed before a plan can be generated.');
   return errors;
@@ -470,10 +476,14 @@ function buildSession(
 
 // ───────────────────────────── Public API ─────────────────────────────
 
-export function generatePlan(profile: Profile, now: Date = new Date()): PlanResult {
-  const errors = validateProfile(profile);
+export function generatePlan(input: Profile, now: Date = new Date()): PlanResult {
+  const errors = validateProfile(input);
   if (errors.length) return { ok: false, reason: 'invalid_input', errors };
 
+  // The engine plans from the user's structured answers PLUS cautious findings from their own words
+  // and "Not sure" answers (treated like "Yes"). Free text can only make a plan safer.
+  const resolution = resolveProfile(input, now);
+  const profile = resolution.profile;
   const screening = screen(profile);
   if (screening.outcome === 'emergency') return { ok: false, reason: 'emergency', screening };
   if (screening.outcome === 'needs_assessment') {
@@ -493,6 +503,20 @@ export function generatePlan(profile: Profile, now: Date = new Date()): PlanResu
       evidenceIds: [...new Set(screening.hits.flatMap((h) => h.evidenceIds))],
     },
   ];
+  if (resolution.used.length > 0) {
+    trace.push({
+      step: 'Used from your own words',
+      detail: `We read what you typed and applied: ${resolution.used.map((f) => f.title).join('; ')}. You can mark any of these “not accurate” in Profile → Your answers.`,
+      evidenceIds: ['heuristic-conservative'],
+    });
+  }
+  if (resolution.unsureApplied.length > 0) {
+    trace.push({
+      step: 'Answers of “Not sure”',
+      detail: 'Where you answered “Not sure”, we treated it like “Yes” so the plan errs on the side of caution.',
+      evidenceIds: ['heuristic-conservative'],
+    });
+  }
 
   const excluded: Plan['excluded'] = [];
   const pool: Exercise[] = [];

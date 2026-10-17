@@ -1,10 +1,10 @@
-# Medical Workout
+# Verimove
 
 A personalized, evidence-linked exercise coach that runs entirely in your browser.
 
 It builds a plan from your age, goals, time, equipment, preferences, accessibility needs and health answers, and explains every recommendation with its sources. Deterministic safety rules refer you to a professional when needed. On-device pose tracking counts reps for supported movements.
 
-> **General fitness guidance, not medical care.** Medical Workout does not diagnose, treat or replace a doctor or physiotherapist. Its content has not been reviewed by a licensed clinician, and its camera tracking has not been medically validated. See [SAFETY_AND_EVIDENCE.md](SAFETY_AND_EVIDENCE.md).
+> **General fitness guidance, not medical care.** Verimove does not diagnose, treat or replace a doctor or physiotherapist. Its content has not been reviewed by a licensed clinician, and its camera tracking has not been medically validated. See [SAFETY_AND_EVIDENCE.md](SAFETY_AND_EVIDENCE.md).
 
 ## Quick start
 

@@ -19,7 +19,7 @@ export function AboutPage() {
             and refer you to a professional when your answers suggest you need one.
           </li>
           <li>
-            <strong>Individualized rehabilitation or treatment (not this app).</strong> A program designed by a licensed professional after assessing you. Medical Workout does not
+            <strong>Individualized rehabilitation or treatment (not this app).</strong> A program designed by a licensed professional after assessing you. Verimove does not
             diagnose, treat, or replace that care.
           </li>
         </ul>

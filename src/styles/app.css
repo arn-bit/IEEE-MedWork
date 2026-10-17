@@ -1,4 +1,7 @@
 @import './tokens.css';
+@import './landing.css';
+@import './onboarding.css';
+@import './polish.css';
 
 *,
 *::before,
@@ -49,17 +52,23 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display);
   line-height: 1.2;
   margin: 0;
   letter-spacing: -0.015em;
   font-weight: 680;
 }
+/* Display serif for headlines; Inter for everything functional (labels, buttons, data). */
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
 h1 {
-  font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.2rem);
+  font-size: clamp(1.8rem, 1.3rem + 1.9vw, 2.5rem);
 }
 h2 {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 h3 {
   font-size: 1.05rem;

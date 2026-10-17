@@ -18,7 +18,7 @@ export function EmergencyPanel({ onDismiss, dismissLabel = 'I am safe — go bac
           <li key={l}>{l}</li>
         ))}
       </ul>
-      <p className="small muted">Medical Workout cannot assess symptoms. When in doubt, call for help — it is always OK to be checked.</p>
+      <p className="small muted">Verimove cannot assess symptoms. When in doubt, call for help — it is always OK to be checked.</p>
       <details className="disclosure">
         <summary>Sources</summary>
         <div>
@@ -43,6 +43,8 @@ function professionalFor(hit: RuleHit): string {
       return 'your doctor (GP / primary care)';
     case 'SCREEN-04':
       return 'your surgical or hospital care team';
+    case 'SCREEN-08':
+      return 'your care team (the clinicians treating what you mentioned)';
     case 'SCREEN-05':
       return 'a doctor or physiotherapist';
     case 'SCREEN-06':
@@ -59,7 +61,7 @@ function professionalFor(hit: RuleHit): string {
 export function ReferralPanel({ screening, onCleared, onEdit }: { screening: ScreeningResult; onCleared?: () => void; onEdit?: () => void }) {
   const blocking = screening.hits.filter((h) => h.outcome === 'needs_assessment');
   const ageOnly = blocking.every((h) => h.ruleId.startsWith('AGE-'));
-  const canClear = blocking.some((h) => ['SCREEN-01', 'SCREEN-02', 'SCREEN-04', 'SCREEN-05', 'SCREEN-07'].includes(h.ruleId)) && !blocking.some((h) => h.ruleId === 'SCREEN-06' || h.ruleId === 'AGE-01');
+  const canClear = blocking.some((h) => ['SCREEN-01', 'SCREEN-02', 'SCREEN-04', 'SCREEN-05', 'SCREEN-07', 'SCREEN-08'].includes(h.ruleId)) && !blocking.some((h) => h.ruleId === 'SCREEN-06' || h.ruleId === 'AGE-01');
   return (
     <section className="stack" aria-labelledby="ref-title">
       <div className="card stack">
@@ -67,7 +69,7 @@ export function ReferralPanel({ screening, onCleared, onEdit }: { screening: Scr
         <h2 id="ref-title">{ageOnly ? 'A grown-up needs to be involved' : 'Please check with a health professional first'}</h2>
         <p className="muted">
           {ageOnly
-            ? 'Medical Workout keeps extra safeguards for young people.'
+            ? 'Verimove keeps extra safeguards for young people.'
             : 'Based on your answers, a personalized exercise plan should come from a professional who can assess you. We have not generated one — this is a safety decision, not a judgment about you.'}
         </p>
         <ul className="list">

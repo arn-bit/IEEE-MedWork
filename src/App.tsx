@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation, Link } from 'react-router';
-import { Icon, LogoMark, type IconName } from './components/Icon';
+import { Icon, LogoMark, Wordmark, type IconName } from './components/Icon';
+import { FocusedLayout, StatusBanners } from './components/Layouts';
 import { useStore } from './state/store';
 import { WelcomePage } from './features/welcome/WelcomePage';
 import { OnboardingPage } from './features/onboarding/OnboardingPage';
@@ -13,11 +14,10 @@ import { ProfilePage } from './features/profile/ProfilePage';
 import { EvidencePage } from './features/profile/EvidencePage';
 import { AboutPage } from './features/profile/AboutPage';
 import { SummaryPage } from './features/profile/SummaryPage';
-import { useOnline } from './hooks/useOnline';
 import { BalanceGame } from './features/challenges/games/BalanceGame';
 import { ReactionGame } from './features/challenges/games/ReactionGame';
 import { QuizGame } from './features/challenges/games/QuizGame';
-import { Callout } from './components/ui';
+import { BRAND } from './brand';
 
 // Dev-only validation-trace recorder. `import.meta.env.DEV` is false in production builds, so this
 // branch (and the dynamic import) is removed and /dev/record falls through to "Page not found".
@@ -45,31 +45,29 @@ function useApplySettings() {
 
 /** On route changes (not the first load), scroll to top and move focus to the main region for screen readers. */
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const first = useRef(true);
   useEffect(() => {
     if (first.current) {
       first.current = false;
       return;
     }
+    if (hash) return; // in-page anchors scroll themselves
     window.scrollTo?.(0, 0);
     document.getElementById('main')?.focus({ preventScroll: true });
-  }, [pathname]);
+  }, [pathname, hash]);
   return null;
 }
 
 function Shell({ children }: { children: ReactNode }) {
-  const { loadStatus } = useStore();
-  const online = useOnline();
   return (
     <div className="shell">
       <a href="#main" className="skip-link">
         Skip to content
       </a>
       <nav className="nav" aria-label="Main">
-        <Link to="/" className="brand nav-desktop-only" aria-label="Medical Workout home">
-          <LogoMark />
-          <span>Medical Workout</span>
+        <Link to="/" className="brand nav-desktop-only" aria-label={`${BRAND.name} home`}>
+          <Wordmark />
         </Link>
         {NAV.map((n) => (
           <NavLink key={n.to} to={n.to} end={n.to === '/'} aria-label={n.label}>
@@ -82,46 +80,32 @@ function Shell({ children }: { children: ReactNode }) {
           <span className="row" style={{ gap: 6 }}>
             <Icon name="lock" size={14} /> Stored only on this device
           </span>
-          <span>General fitness guidance — not medical care.</span>
+          <span>General fitness guidance, not medical care.</span>
         </div>
       </nav>
       <div>
         <header className="topbar">
-          <Link to="/" className="brand">
+          <Link to="/" className="brand" aria-label={`${BRAND.name} home`}>
             <LogoMark size={28} />
-            <span>Medical Workout</span>
+            <span>{BRAND.name}</span>
           </Link>
           <Link to="/profile#privacy" className="badge badge-brand" aria-label="Privacy: data stays on this device">
             <Icon name="lock" size={13} /> On-device
           </Link>
         </header>
         <main id="main" className="main" tabIndex={-1}>
-          {!online ? (
-            <div style={{ marginBottom: 16 }} role="status">
-              <Callout tone="info" title="You’re offline">
-                Everything still works on this device. Camera tracking works offline once the model has loaded at least once.
-              </Callout>
-            </div>
-          ) : null}
-          {loadStatus === 'corrupt' ? (
-            <div style={{ marginBottom: 16 }}>
-              <Callout tone="warn" title="Saved data could not be read">
-                Your saved data on this device was damaged or from an incompatible version, so the app started fresh. Nothing was sent anywhere.
-              </Callout>
-            </div>
-          ) : null}
-          {loadStatus === 'unavailable' ? (
-            <div style={{ marginBottom: 16 }}>
-              <Callout tone="warn" title="Storage is unavailable">
-                This browser is blocking local storage (for example, in some private modes). The app works, but your progress will not be saved after you close this tab.
-              </Callout>
-            </div>
-          ) : null}
+          <StatusBanners />
           {children}
         </main>
       </div>
     </div>
   );
+}
+
+/** Pages that are useful before and after set-up: app navigation once you have a profile, focused layout before. */
+function Adaptive({ children }: { children: ReactNode }) {
+  const { data } = useStore();
+  return data.profile ? <Shell>{children}</Shell> : <FocusedLayout actions={<Link className="btn btn-secondary btn-sm" to="/onboarding">Get started</Link>}>{children}</FocusedLayout>;
 }
 
 function RequireProfile({ children }: { children: ReactNode }) {
@@ -136,10 +120,10 @@ export function App() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/welcome" element={<Shell><WelcomePage /></Shell>} />
-        <Route path="/onboarding" element={<Shell><OnboardingPage /></Shell>} />
-        <Route path="/about" element={<Shell><AboutPage /></Shell>} />
-        <Route path="/evidence" element={<Shell><EvidencePage /></Shell>} />
+        <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/onboarding" element={<FocusedLayout homeTo="/"><OnboardingPage /></FocusedLayout>} />
+        <Route path="/about" element={<Adaptive><AboutPage /></Adaptive>} />
+        <Route path="/evidence" element={<Adaptive><EvidencePage /></Adaptive>} />
         <Route path="/" element={<Shell><RequireProfile><HomePage /></RequireProfile></Shell>} />
         <Route path="/plan" element={<Shell><RequireProfile><PlanPage /></RequireProfile></Shell>} />
         <Route path="/workout" element={<Shell><RequireProfile><WorkoutPage /></RequireProfile></Shell>} />
@@ -147,7 +131,7 @@ export function App() {
         <Route path="/challenges" element={<Shell><RequireProfile><ChallengesPage /></RequireProfile></Shell>} />
         <Route path="/challenges/balance" element={<Shell><RequireProfile><BalanceGame /></RequireProfile></Shell>} />
         <Route path="/challenges/reaction" element={<Shell><RequireProfile><ReactionGame /></RequireProfile></Shell>} />
-        <Route path="/challenges/quiz" element={<Shell><QuizGame /></Shell>} />
+        <Route path="/challenges/quiz" element={<Adaptive><QuizGame /></Adaptive>} />
         <Route path="/profile" element={<Shell><ProfilePage /></Shell>} />
         <Route path="/summary" element={<Shell><RequireProfile><SummaryPage /></RequireProfile></Shell>} />
         {RecordTracePage ? (
@@ -162,7 +146,7 @@ export function App() {
             }
           />
         ) : null}
-        <Route path="*" element={<Shell><NotFound /></Shell>} />
+        <Route path="*" element={<Adaptive><NotFound /></Adaptive>} />
       </Routes>
     </>
   );

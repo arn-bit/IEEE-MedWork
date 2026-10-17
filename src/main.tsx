@@ -2,7 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import { App } from './App';
-import { StoreProvider } from './state/store';
+import { AppGate } from './state/Gate';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource-variable/fraunces/wght.css';
 import './styles/app.css';
 
 // Offline support (production only). The worker caches this app's own files; never personal data.
@@ -14,10 +16,10 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <StoreProvider>
-      <BrowserRouter>
+    <BrowserRouter>
+      <AppGate>
         <App />
-      </BrowserRouter>
-    </StoreProvider>
+      </AppGate>
+    </BrowserRouter>
   </StrictMode>,
 );

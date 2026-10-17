@@ -1,3 +1,4 @@
+import { BRAND } from '../brand';
 const PATHS: Record<string, string> = {
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
   plan: 'M7 3v3M17 3v3M4 8h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM8 12h3M8 16h6',
@@ -66,12 +67,23 @@ export function Icon({ name, size = 20, title, className }: { name: IconName | s
   );
 }
 
+/** Verimove mark: a "V" that resolves into a check, with a small motion arc. */
 export function LogoMark({ size = 30 }: { size?: number }) {
   return (
     <span className="brand-mark" style={{ width: size, height: size }} aria-hidden="true">
-      <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 13h4l2-5 4 10 2-5h6" />
+      <svg width={size * 0.66} height={size * 0.66} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4.5 9.5 10.5 19 20 4.5" />
+        <path d="M3 5.5a8 8 0 0 1 5-2" strokeWidth={2} opacity={0.55} />
       </svg>
+    </span>
+  );
+}
+
+export function Wordmark({ size = 30, className }: { size?: number; className?: string }) {
+  return (
+    <span className={`wordmark ${className ?? ''}`}>
+      <LogoMark size={size} />
+      <span className="wordmark-text">{BRAND.name}</span>
     </span>
   );
 }

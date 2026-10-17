@@ -314,3 +314,95 @@ export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.ceil(totalSeconds));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
+
+/** Compact single-choice control (radio group styled as a segmented switch). */
+export function Segmented<T extends string>({
+  legend,
+  hint,
+  value,
+  onChange,
+  options,
+  name,
+  hideLegend = false,
+  size = 'md',
+}: {
+  legend: string;
+  hint?: ReactNode;
+  value: T | null;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+  name?: string;
+  hideLegend?: boolean;
+  size?: 'sm' | 'md';
+}) {
+  const auto = useId();
+  const group = name ?? auto;
+  return (
+    <fieldset className="seg-field">
+      <legend className={hideLegend ? 'visually-hidden' : 'label'}>{legend}</legend>
+      {hint}
+      <div className={`seg seg-${size}`}>
+        {options.map((o) => (
+          <label key={o.value} className="seg-opt">
+            <input type="radio" name={group} checked={value === o.value} onChange={() => onChange(o.value)} />
+            <span>{o.label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/** Multi-line typed input with a character counter and optional example chips. */
+export function TextAreaField({
+  label,
+  hint,
+  value,
+  onChange,
+  max = 600,
+  placeholder,
+  examples,
+  rows = 3,
+}: {
+  label: string;
+  hint?: ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+  max?: number;
+  placeholder?: string;
+  examples?: string[];
+  rows?: number;
+}) {
+  const id = useId();
+  const left = max - value.length;
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      {hint ? <span className="hint">{hint}</span> : null}
+      <textarea
+        id={id}
+        className="input textarea"
+        rows={rows}
+        maxLength={max}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        spellCheck
+        autoComplete="off"
+        aria-describedby={`${id}-count`}
+      />
+      <div className="row-between">
+        <div className="chip-group" aria-label="Examples you can add">
+          {(examples ?? []).map((ex) => (
+            <button key={ex} type="button" className="btn btn-ghost btn-sm example-chip" onClick={() => onChange(value ? `${value.trimEnd()}${/[.!?]$/.test(value.trim()) ? '' : '.'} ${ex}` : ex)}>
+              + {ex}
+            </button>
+          ))}
+        </div>
+        <span id={`${id}-count`} className={`tiny num ${left < 40 ? 'count-low' : 'muted'}`}>
+          {value.length}/{max}
+        </span>
+      </div>
+    </div>
+  );
+}
