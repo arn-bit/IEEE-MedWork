@@ -1,4 +1,5 @@
-import type { CounterId } from '../domain/types';
+import type { RepCounterId } from '../domain/types';
+import { EXTRA_COUNTERS } from './counters.extra';
 import { LM, OneEuro, SIDES, angle, bestSide, dist, estimateView, mid, minVisibility, sideIdx, vis, type Frame, type Joint, type Side } from './geometry';
 
 /**
@@ -36,14 +37,19 @@ interface Ctx {
 }
 
 export interface CounterSpec {
-  id: CounterId;
+  id: RepCounterId;
   label: string;
   joints: Joint[];
   bilateral: boolean;
   fullBody: boolean;
   view: 'front' | 'side' | 'front_or_side';
   start: 'high' | 'low';
+  /** Thresholds are relative to a resting baseline measured while still. */
   relative: boolean;
+  /** 'ratio' (default): thresholds multiply the baseline. 'delta': thresholds are offsets from it. */
+  baselineMode?: 'ratio' | 'delta';
+  /** Extra landmark indices that must be visible (e.g. both ankles). */
+  needs?: number[];
   thresholds: Record<RangeMode, { enter: number; exit: number }>;
   minRepMs: number;
   metric(frame: Frame, side: Side): number | null;
@@ -66,7 +72,7 @@ function trunkTilt(f: Frame): number {
   return (Math.atan2(Math.abs(sh.x - hp.x), Math.abs(hp.y - sh.y)) * 180) / Math.PI;
 }
 
-export const COUNTERS: Record<CounterId, CounterSpec> = {
+const BASE_COUNTERS: Record<'squat' | 'sit_to_stand' | 'wall_pushup' | 'arm_raise' | 'march', CounterSpec> = {
   squat: {
     id: 'squat',
     label: 'Squat',
@@ -196,14 +202,16 @@ export const COUNTERS: Record<CounterId, CounterSpec> = {
   },
 };
 
+export const COUNTERS: Record<RepCounterId, CounterSpec> = { ...BASE_COUNTERS, ...EXTRA_COUNTERS };
+
 // ───────────────────────────── Positioning ─────────────────────────────
 
-const JOINT_NAME: Record<Joint, string> = { shoulder: 'shoulder', elbow: 'elbow', wrist: 'wrist', hip: 'hip', knee: 'knee', ankle: 'ankle' };
+const JOINT_NAME: Record<Joint, string> = { shoulder: 'shoulder', elbow: 'elbow', wrist: 'wrist', hip: 'hip', knee: 'knee', ankle: 'ankle', heel: 'heel', toe: 'foot' };
 
-export function requiredIndices(spec: CounterSpec, side: Side): number[] {
+export function requiredIndices(spec: PositionSpec, side: Side): number[] {
   const idx = spec.bilateral ? [...sideIdx('left', spec.joints), ...sideIdx('right', spec.joints)] : sideIdx(side, spec.joints);
   // Torso landmarks are needed for scale/tilt; the head must be visible per the model card.
-  return [...new Set([...idx, LM.leftShoulder, LM.rightShoulder, LM.leftHip, LM.rightHip, LM.nose])];
+  return [...new Set([...idx, ...(spec.needs ?? []), LM.leftShoulder, LM.rightShoulder, LM.leftHip, LM.rightHip, LM.nose])];
 }
 
 export interface PositionAssessment {
@@ -212,7 +220,9 @@ export interface PositionAssessment {
   view: 'front' | 'side' | 'unknown';
 }
 
-export function assessPosition(frame: Frame | null, spec: CounterSpec): PositionAssessment {
+export type PositionSpec = Pick<CounterSpec, 'joints' | 'bilateral' | 'fullBody' | 'view'> & { needs?: number[] };
+
+export function assessPosition(frame: Frame | null, spec: PositionSpec): PositionAssessment {
   if (!frame || frame.length < 33) return { ok: false, messages: ['No body detected. Make sure you are in view, in good light, and the only person in the frame.'], view: 'unknown' };
   const messages: string[] = [];
   const side = bestSide(frame, spec.joints);
@@ -253,7 +263,17 @@ interface SideState {
   value: number | null;
 }
 
+export type DetectorKind = 'rep' | 'hold' | 'activity';
+
 export interface CounterSnapshot {
+  /** What this detector measures: reps, a held position, or movement. */
+  kind: DetectorKind;
+  /** 0..1: how far the current movement is toward counting (rep), or 1 while held/active. */
+  progress: number;
+  /** hold/activity: whether the position is being held / you are moving right now. */
+  holding: boolean;
+  /** hold/activity: total milliseconds of valid hold/movement so far. */
+  heldMs: number;
   count: number;
   partials: number;
   phase: Phase;
@@ -266,6 +286,7 @@ export interface CounterSnapshot {
 }
 
 export class RepCounter {
+  readonly kind = 'rep' as const;
   readonly spec: CounterSpec;
   private mode: RangeMode;
   private count = 0;
@@ -278,7 +299,7 @@ export class RepCounter {
   private lastCueAt = new Map<string, number>();
   private cue: Cue | null = null;
 
-  constructor(id: CounterId, mode: RangeMode = 'standard') {
+  constructor(id: RepCounterId, mode: RangeMode = 'standard') {
     this.spec = COUNTERS[id];
     this.mode = mode;
     this.resetSides();
@@ -329,6 +350,7 @@ export class RepCounter {
     if (!this.spec.relative) return t;
     const b = this.ctx.baseline.get(side);
     if (b === undefined) return null;
+    if (this.spec.baselineMode === 'delta') return { enter: b + t.enter, exit: b + t.exit };
     return { enter: t.enter * b, exit: t.exit * b };
   }
 
@@ -399,9 +421,8 @@ export class RepCounter {
           const sorted = [...st.baselineSamples].sort((a, b) => a - b);
           const median = sorted[Math.floor(sorted.length / 2)]!;
           const spread = sorted[sorted.length - 1]! - sorted[0]!;
-          if (median > 0.2 && spread < median * 0.15) {
-            this.ctx.baseline.set(side, median);
-          }
+          const stable = this.spec.baselineMode === 'delta' ? spread < 0.04 : median > 0.2 && spread < median * 0.15;
+          if (stable) this.ctx.baseline.set(side, median);
         }
       }
       const t = this.thresholds(side);
@@ -497,6 +518,30 @@ export class RepCounter {
       : primary.phase;
     // Form cues are suppressed whenever tracking is not reliable.
     const cue = this.tracking === 'ok' ? this.cue : null;
-    return { count: this.count, partials: this.partials, phase, tracking: this.tracking, side: this.side, metric: primary.value, messages, cue, events };
+    let progress = 0;
+    for (const side of this.spec.bilateral ? (['left', 'right'] as Side[]) : [this.side]) {
+      const t = this.thresholds(side);
+      const v = this.sides.get(side)!.value;
+      if (!t || v === null) continue;
+      const high = this.spec.start === 'high';
+      const p = high ? (t.exit - v) / (t.exit - t.enter) : (v - t.exit) / (t.enter - t.exit);
+      progress = Math.max(progress, Math.min(1, Math.max(0, p)));
+    }
+    if (this.tracking !== 'ok') progress = 0;
+    return {
+      kind: 'rep',
+      progress,
+      holding: false,
+      heldMs: 0,
+      count: this.count,
+      partials: this.partials,
+      phase,
+      tracking: this.tracking,
+      side: this.side,
+      metric: primary.value,
+      messages,
+      cue,
+      events,
+    };
   }
 }

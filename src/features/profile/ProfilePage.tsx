@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { useStore } from '../../state/store';
 import { exportJson } from '../../state/storage';
 import { speechAvailable } from '../../hooks/speech';
-import { CheckCard, Callout, Modal, PageHead } from '../../components/ui';
+import { CheckCard, Callout, Modal, PageHead, Segmented } from '../../components/ui';
 import { Icon } from '../../components/Icon';
 import type { Pause } from '../../domain/gamification/rules';
 import { AnswerAnalysis } from '../onboarding/AnswerAnalysis';
@@ -144,7 +144,21 @@ export function ProfilePage() {
 
       <section className="card stack" aria-labelledby="set-h">
         <h2 id="set-h">Settings & accessibility</h2>
+        <Segmented
+          legend="Layout"
+          hint={<span className="hint">Auto picks the phone or desktop layout from your device. Change it if the wrong one is chosen.</span>}
+          value={s.layout}
+          onChange={(v) => updateSettings({ layout: v })}
+          name="layout"
+          options={[
+            { value: 'auto', label: 'Auto' },
+            { value: 'phone', label: 'Phone' },
+            { value: 'desktop', label: 'Desktop' },
+          ]}
+        />
         <div className="grid-2">
+          <CheckCard checked={s.repSound} onChange={(v) => updateSettings({ repSound: v })} title="Beep when a rep is counted" hint="A short tone so you can tell the camera is counting." />
+          <CheckCard checked={s.repHaptics} onChange={(v) => updateSettings({ repHaptics: v })} title="Vibrate when a rep is counted" hint="On phones that support it." />
           <CheckCard checked={s.textSize === 'large'} onChange={(v) => updateSettings({ textSize: v ? 'large' : 'normal' })} title="Larger text" />
           <CheckCard checked={s.highContrast} onChange={(v) => updateSettings({ highContrast: v })} title="Higher contrast" />
           <CheckCard checked={s.motion === 'reduce'} onChange={(v) => updateSettings({ motion: v ? 'reduce' : 'system' })} title="Reduce motion" hint="Also follows your device setting." />

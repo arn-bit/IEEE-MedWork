@@ -31,6 +31,7 @@ export const MAX_MINUTES = 90;
 const TRANSITION_S = 15;
 const MAX_MAIN_ITEMS = 8; // time to read instructions / get into position between exercises
 const PER_SIDE = new Set([
+  'tandem_stand',
   'side_leg_lift',
   'seated_knee_extension',
   'step_up',
@@ -164,7 +165,7 @@ export function prescribe(ex: Exercise, profile: Profile, c: Constraints, block:
       };
     }
     case 'balance': {
-      if (ex.id === 'one_leg_stand' || ex.id === 'one_leg_stand_supported') {
+      if (ex.id === 'one_leg_stand' || ex.id === 'one_leg_stand_supported' || ex.id === 'tandem_stand') {
         return {
           kind: 'hold',
           sets: 3,
@@ -208,6 +209,20 @@ export function prescribe(ex: Exercise, profile: Profile, c: Constraints, block:
     case 'strength':
     case 'warmup':
     default: {
+      if (ex.id === 'wall_sit') {
+        return {
+          kind: 'hold',
+          sets: shortSession ? 1 : 2,
+          amount: youth || profile.activityLevel === 'inactive' || c.ageBand === 'older' ? 15 : 25,
+          perSide: false,
+          restSeconds: 45,
+          secondsPerRep: 0,
+          intensity,
+          rationale: 'A static hold, starting short and building gradually. The duration is a cautious product choice; ACSM guidance covers repetition-based strength training, so this is an extrapolation.',
+          evidenceIds: ['acsm-rt-2009', 'heuristic-conservative'],
+          evidenceKind: 'product_heuristic',
+        };
+      }
       let reps: number;
       let sets: number;
       let rest: number;
@@ -295,6 +310,62 @@ function categoryWeights(goals: Goal[], band: Constraints['ageBand']): Record<'s
   return w;
 }
 
+// ───────────── Themed days and goal-weighted selection ─────────────
+
+export type Theme = 'full' | 'lower' | 'upper' | 'balance' | 'cardio' | 'mobility';
+export const THEME_LABEL: Record<Theme, string> = {
+  full: 'Full body',
+  lower: 'Lower body',
+  upper: 'Upper body & posture',
+  balance: 'Balance & stability',
+  cardio: 'Heart & lungs',
+  mobility: 'Mobility & stretch',
+};
+const LOWER_PATTERNS = new Set(['squat', 'hinge', 'calf', 'balance']);
+const UPPER_PATTERNS = new Set(['push', 'pull', 'carry_hold', 'mobility']);
+
+/** The rotation of day themes for a person, driven by their goals (so plans differ between people). */
+export function themeCycle(goals: Goal[], band: Constraints['ageBand']): Theme[] {
+  const t: Theme[] = [];
+  const add = (x: Theme) => {
+    if (!t.includes(x)) t.push(x);
+  };
+  if (goals.includes('strength')) {
+    add('lower');
+    add('upper');
+  }
+  if (goals.includes('endurance')) add('cardio');
+  if (goals.includes('balance') || band === 'older') add('balance');
+  if (goals.includes('flexibility') || goals.includes('mobility')) add('mobility');
+  if (goals.includes('general_fitness') || t.length === 0) {
+    add('full');
+    add('lower');
+    add('upper');
+    add('cardio');
+  }
+  add('full');
+  return t;
+}
+
+/** Orders a category's exercises: best fit for this person and day first, recently used last. */
+function rank(list: Exercise[], profile: Profile, theme: Theme, weekUse: Map<string, number>, cat: string): Exercise[] {
+  const score = (e: Exercise) => {
+    let s = e.goals.filter((g) => profile.goals.includes(g)).length * 12;
+    if (cat === 'strength') {
+      if (theme === 'lower' && LOWER_PATTERNS.has(e.pattern)) s += 40;
+      if (theme === 'upper' && UPPER_PATTERNS.has(e.pattern)) s += 40;
+      if (theme === 'lower' && UPPER_PATTERNS.has(e.pattern)) s -= 15;
+      if (theme === 'upper' && LOWER_PATTERNS.has(e.pattern)) s -= 15;
+    }
+    // Match difficulty to experience a little, without hiding easier moves.
+    if (profile.experience === 'experienced') s += e.difficulty * 3;
+    if (profile.experience === 'new') s -= e.difficulty * 3;
+    s -= (weekUse.get(e.id) ?? 0) * 22;
+    return s;
+  };
+  return [...list].sort((a, b) => score(b) - score(a) || a.id.localeCompare(b.id));
+}
+
 /** Deterministic weighted round-robin sequence of categories. */
 function categorySequence(weights: Record<string, number>, length: number): string[] {
   const credit: Record<string, number> = Object.fromEntries(Object.keys(weights).map((k) => [k, 0]));
@@ -323,8 +394,14 @@ function reasonsFor(ex: Exercise, profile: Profile, c: Constraints): string[] {
   return r;
 }
 
-function pickWarmups(pool: Exercise[], c: Constraints): Exercise[] {
-  const order = c.seatedOnly ? ['seated_march', 'shoulder_rolls'] : ['march_in_place', 'shoulder_rolls', 'heel_digs', 'seated_march'];
+function pickWarmups(pool: Exercise[], c: Constraints, theme: Theme): Exercise[] {
+  const order = c.seatedOnly
+    ? ['seated_march', 'shoulder_rolls']
+    : theme === 'upper'
+      ? ['shoulder_rolls', 'march_in_place', 'heel_digs', 'seated_march']
+      : theme === 'cardio' || theme === 'lower'
+        ? ['march_in_place', 'heel_digs', 'shoulder_rolls', 'seated_march']
+        : ['march_in_place', 'shoulder_rolls', 'heel_digs', 'seated_march'];
   return order.map((id) => pool.find((e) => e.id === id)).filter((e): e is Exercise => Boolean(e)).slice(0, 3);
 }
 
@@ -336,6 +413,8 @@ function buildSession(
   dayIndex: number,
   limit: number,
   trace: DecisionTraceEntry[],
+  theme: Theme,
+  weekUse: Map<string, number>,
 ): PlannedSession {
   const items: PlannedItem[] = [];
   const notes: string[] = [];
@@ -344,7 +423,7 @@ function buildSession(
   if (budgets.note) notes.push(budgets.note);
 
   // Warm-up: shoulder rolls get a fixed 10 reps; timed moves share the rest of the budget.
-  const warmups = pickWarmups(pool, c);
+  const warmups = pickWarmups(pool, c, theme);
   let used = 0;
   if (warmups.length) {
     const fixed = warmups.filter((e) => e.id === 'shoulder_rolls').length * (10 * 3 + TRANSITION_S);
@@ -382,17 +461,22 @@ function buildSession(
   // Main block.
   const mainBudget = limit - used - coolUsed;
   const weights = categoryWeights(profile.goals, c.ageBand);
+  // The day's theme shifts the mix, so different days feel different.
+  if (theme === 'cardio') weights.aerobic += 4;
+  if (theme === 'balance') weights.balance += 4;
+  if (theme === 'mobility') weights.flexibility += 3;
+  if (theme === 'lower' || theme === 'upper') weights.strength += 2;
   const byCat: Record<string, Exercise[]> = {
-    strength: pool.filter((e) => e.category === 'strength'),
-    balance: pool.filter((e) => e.category === 'balance'),
-    aerobic: pool.filter((e) => e.category === 'aerobic'),
-    flexibility: pool.filter((e) => e.category === 'flexibility' && !cooldownItems.some((ci) => ci.exerciseId === e.id)),
+    strength: rank(pool.filter((e) => e.category === 'strength'), profile, theme, weekUse, 'strength'),
+    balance: rank(pool.filter((e) => e.category === 'balance'), profile, theme, weekUse, 'balance'),
+    aerobic: rank(pool.filter((e) => e.category === 'aerobic'), profile, theme, weekUse, 'aerobic'),
+    flexibility: rank(pool.filter((e) => e.category === 'flexibility' && !cooldownItems.some((ci) => ci.exerciseId === e.id)), profile, theme, weekUse, 'flexibility'),
   };
   for (const k of Object.keys(weights) as (keyof typeof weights)[]) if (!byCat[k]!.length) weights[k] = 0;
   // Strength first: guidelines recommend muscle strengthening for every age group.
   const seq = weights.strength > 0 ? ['strength', ...categorySequence(weights, 12)] : categorySequence(weights, 12);
   const usedIds = new Set<string>(items.map((i) => i.exerciseId));
-  const cursor: Record<string, number> = { strength: sessionIndex * 2, balance: sessionIndex, aerobic: sessionIndex, flexibility: sessionIndex };
+  const cursor: Record<string, number> = { strength: 0, balance: 0, aerobic: 0, flexibility: 0 };
   let mainUsed = 0;
   const main: PlannedItem[] = [];
   for (const cat of seq) {
@@ -423,8 +507,9 @@ function buildSession(
       est = estimateSeconds(p);
     }
     if (mainUsed + est > mainBudget) continue;
-    main.push({ exerciseId: ex.id, block: 'main', prescription: p, estSeconds: est, reasons: reasonsFor(ex, profile, c) });
+    main.push({ exerciseId: ex.id, block: 'main', prescription: p, estSeconds: est, reasons: [`Today’s theme: ${THEME_LABEL[theme]}`, ...reasonsFor(ex, profile, c)] });
     usedIds.add(ex.id);
+    weekUse.set(ex.id, (weekUse.get(ex.id) ?? 0) + 1);
     mainUsed += est;
   }
   // Fill pass: use leftover time for extra sets (up to 3) rather than leaving it unused.
@@ -451,8 +536,7 @@ function buildSession(
     throw new Error(`Plan engine invariant violated: ${estSeconds}s > ${limit}s`);
   }
 
-  const cats = new Set(main.map((m) => getExercise(m.exerciseId)?.category));
-  const focus = [...cats].filter(Boolean).join(' + ') || 'gentle movement';
+  const focus = THEME_LABEL[theme];
   if (sessionIndex === 0) {
     trace.push({
       step: 'Session time budget',
@@ -465,7 +549,7 @@ function buildSession(
   return {
     id: `s${dayIndex}`,
     dayIndex,
-    title: `${DAY_NAMES[dayIndex]} workout`,
+    title: `${DAY_NAMES[dayIndex]} · ${THEME_LABEL[theme]}`,
     focus,
     items,
     estSeconds,
@@ -532,6 +616,13 @@ export function generatePlan(input: Profile, now: Date = new Date()): PlanResult
   });
 
   const days = DAY_PATTERNS[profile.daysPerWeek]!;
+  const themes = themeCycle(profile.goals, c.ageBand);
+  const weekUse = new Map<string, number>();
+  trace.push({
+    step: 'Themed days',
+    detail: `Your goals set the rotation of day themes: ${themes.map((t) => THEME_LABEL[t]).join(' → ')}. Each day leans toward its theme, favours exercises that match your goals, and avoids repeating the same moves on other days of the week.`,
+    evidenceIds: ['acsm-2011'],
+  });
   trace.push({
     step: 'Weekly structure',
     detail: `${profile.daysPerWeek} workout day(s) with rest days in between where possible. Every session includes muscle-strengthening work; guidelines recommend strengthening on at least 2 days a week${
@@ -550,7 +641,7 @@ export function generatePlan(input: Profile, now: Date = new Date()): PlanResult
   const limit = profile.minutesPerSession * 60;
   const schedule: (PlannedSession | null)[] = Array.from({ length: 7 }, () => null);
   days.forEach((d, i) => {
-    schedule[d] = buildSession(profile, c, pool, i, d, limit, trace);
+    schedule[d] = buildSession(profile, c, pool, i, d, limit, trace, themes[i % themes.length]!, weekUse);
   });
 
   const aerobicSecondsPerWeek = schedule

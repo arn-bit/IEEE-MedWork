@@ -73,6 +73,12 @@ export function HomePage() {
         </Callout>
       ) : null}
 
+      {today && !paused && !doneToday ? (
+        <Link to={`/workout?session=${today.id}`} className="btn btn-primary btn-lg phone-cta">
+          <Icon name="play" size={18} /> Start today’s workout
+        </Link>
+      ) : null}
+
       <div className="home-grid">
         <section className="card card-feature today" aria-labelledby="today-h">
           <div className="stack today-copy">

@@ -32,15 +32,12 @@ test('camera permission granted: the local model loads and runs, with no externa
   await expect(page.getByText(/Model: MediaPipe Pose Landmarker Lite · running on (GPU|CPU)/)).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText('On-device only')).toBeVisible();
   // Start a rep-based set so the counter runs against the fake (person-free) video.
-  for (let i = 0; i < 8 && !(await page.getByRole('button', { name: 'Add one rep' }).isVisible()); i++) {
-    const startBtn = page.getByRole('button', { name: /Start (set|timer)/ });
-    if (await startBtn.isVisible()) await startBtn.click();
-    const finish = page.getByRole('button', { name: 'Finish early' });
-    if (await finish.isVisible()) await finish.click();
-    const skipRest = page.getByRole('button', { name: 'Skip rest' });
-    if (await skipRest.isVisible()) await skipRest.click();
-  }
-  await expect(page.locator('.cam-wrap')).toBeVisible();
+  const start = page.getByRole('button', { name: /Start (set|timer)/ });
+  await expect(start).toBeEnabled({ timeout: 30_000 });
+  await start.click();
+  await expect(page.locator('.cam-wrap.cam-full')).toBeVisible();
+  await expect(page.locator('.fs-timer')).toBeVisible();
+  await expect(page.locator('.fs-counter')).toBeVisible();
   expect(modelRequests).toContain('200 /models/pose_landmarker_lite.task');
   expect(modelRequests.some((r) => r.startsWith('200 /mediapipe/wasm/vision_wasm'))).toBe(true);
   expect(w.external).toEqual([]);
@@ -52,19 +49,13 @@ test('camera on a camera-capable exercise reports "No body detected" for the syn
   await page.goto('/workout?session=s0');
   await page.getByText('I feel fine').click();
   await page.getByRole('button', { name: 'Use camera' }).click();
-  // Skip to the first exercise whose card shows camera counting is available.
-  for (let i = 0; i < 12; i++) {
-    const noCounting = await page.getByText('No camera counting for this exercise').isVisible();
-    const intro = await page.getByRole('button', { name: /Start (set|timer)/ }).isVisible();
-    if (!noCounting && intro && (await page.getByText(/Model: MediaPipe/).isVisible())) break;
-    if (await page.getByRole('button', { name: 'Skip exercise' }).isVisible()) await page.getByRole('button', { name: 'Skip exercise' }).click();
-    await page.waitForTimeout(300);
-  }
+  // Every exercise has camera tracking now, so the first one will do.
   await expect(page.getByText(/Model: MediaPipe/)).toBeVisible({ timeout: 90_000 });
-  await page.getByRole('button', { name: 'Start set' }).click();
-  await expect(page.locator('.cam-overlay-msg')).toContainText(/No body detected|can't clearly see/, { timeout: 20_000 });
-  await expect(page.locator('.big-count')).toContainText('0');
-  await expect(page.getByText('Not tracking')).toBeVisible();
+  await page.getByRole('button', { name: /Start (set|timer)/ }).click();
+  // The pill must say plainly that nothing is being counted (the fake camera shows no person).
+  await expect(page.locator('.count-pill').first()).toContainText(/can’t see you|Not counting/, { timeout: 20_000 });
+  await expect(page.locator('.count-pill').first()).toHaveAttribute('data-state', 'searching');
+  await expect(page.locator('.fs-counter')).not.toContainText('✓');
 });
 
 test('MediaPipe usage metrics are blocked by the CSP (no telemetry leaves the device)', async ({ page }) => {
@@ -94,8 +85,9 @@ test('the camera can be turned off mid-session (stream fully stopped) and back o
     return !!s && s.getTracks().some((t) => t.readyState === 'live');
   });
   expect(await live()).toBe(true);
+  await page.getByText('More', { exact: true }).click();
   await page.getByRole('button', { name: 'Turn camera off' }).click();
-  await expect(page.getByText('Camera is off')).toBeVisible();
+  await expect(page.getByText('Camera is off').first()).toBeVisible();
   await expect(page.locator('.cam-wrap video')).toHaveCount(0);
   await page.getByRole('button', { name: 'Turn camera on' }).click();
   await expect(page.getByText(/Model: MediaPipe/)).toBeVisible({ timeout: 60_000 });

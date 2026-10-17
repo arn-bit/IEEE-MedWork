@@ -181,11 +181,48 @@ export interface Exercise {
   sourceIds: string[];
   evidenceReviewed: string;
   reviewStatus: 'reviewed_against_public_guidance' | 'unverified_placeholder';
-  camera: { supported: false } | { supported: true; counterId: CounterId; view: 'front' | 'side' | 'front_or_side'; notes: string };
+  camera: { supported: false } | { supported: true; counterId: DetectorId; view: 'front' | 'side' | 'front_or_side'; notes: string };
   demo: DemoId;
 }
 
-export type CounterId = 'squat' | 'sit_to_stand' | 'wall_pushup' | 'arm_raise' | 'march';
+/** Rep counters: a full movement cycle counts one rep. */
+export type RepCounterId =
+  | 'squat'
+  | 'sit_to_stand'
+  | 'wall_pushup'
+  | 'arm_raise'
+  | 'march'
+  | 'seated_march'
+  | 'shoulder_roll'
+  | 'calf_raise'
+  | 'side_leg_lift'
+  | 'step_up'
+  | 'glute_bridge'
+  | 'knee_extension'
+  | 'biceps_curl'
+  | 'band_row'
+  | 'side_step'
+  | 'heel_toe'
+  | 'hip_hinge'
+  | 'shoulder_press'
+  | 'lateral_raise';
+/** Kept for the validation recorder, which only deals with rep counters. */
+export type CounterId = RepCounterId;
+/** Hold detectors: the timer only runs while the position is held. */
+export type HoldDetectorId =
+  | 'hold_one_leg'
+  | 'hold_chest_open'
+  | 'hold_twist'
+  | 'hold_calf_stretch'
+  | 'hold_ankle_stretch'
+  | 'hold_side_bend'
+  | 'hold_neck_turn'
+  | 'hold_hamstring'
+  | 'hold_wall_sit'
+  | 'hold_tandem';
+/** Activity detectors: the timer only runs while you are moving. */
+export type ActivityDetectorId = 'activity_legs' | 'activity_arms' | 'activity_body';
+export type DetectorId = RepCounterId | HoldDetectorId | ActivityDetectorId;
 export type DemoId = string;
 
 export type ScreeningOutcome = 'emergency' | 'needs_assessment' | 'proceed_with_modifications' | 'proceed';

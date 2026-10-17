@@ -234,3 +234,41 @@ describe('plan engine — explanations', () => {
     }
   });
 });
+
+describe('plans differ between people and between days', () => {
+  const mainIds = (plan: Plan) => new Set(sessions(plan).flatMap((s) => s.items.filter((i) => i.block === 'main').map((i) => i.exerciseId)));
+  const jaccard = (a: Set<string>, b: Set<string>) => [...a].filter((x) => b.has(x)).length / new Set([...a, ...b]).size;
+  const kit = ['chair', 'wall', 'step', 'mat', 'light_weights', 'resistance_band'] as const;
+
+  it('days in one week have different themes and different exercises', () => {
+    const plan = okPlan(makeProfile({ goals: ['strength', 'endurance', 'balance'], daysPerWeek: 4, minutesPerSession: 40, equipment: [...kit] }));
+    const ss = sessions(plan);
+    expect(new Set(ss.map((s) => s.focus)).size).toBeGreaterThanOrEqual(3);
+    const perDay = ss.map((s) => new Set(s.items.filter((i) => i.block === 'main').map((i) => i.exerciseId)));
+    for (let i = 0; i < perDay.length; i++) for (let j = i + 1; j < perDay.length; j++) expect(jaccard(perDay[i]!, perDay[j]!)).toBeLessThan(0.6);
+    expect(mainIds(plan).size).toBeGreaterThanOrEqual(10);
+  });
+
+  it('different goals give clearly different plans', () => {
+    const base = { daysPerWeek: 3, minutesPerSession: 30, equipment: [...kit] };
+    const strength = okPlan(makeProfile({ ...base, goals: ['strength'], experience: 'experienced', activityLevel: 'active' }));
+    const balance = okPlan(makeProfile({ ...base, goals: ['balance'] }));
+    const cardio = okPlan(makeProfile({ ...base, goals: ['endurance'] }));
+    expect(jaccard(mainIds(strength), mainIds(balance))).toBeLessThan(0.5);
+    expect(jaccard(mainIds(strength), mainIds(cardio))).toBeLessThan(0.5);
+    const cat = (plan: Plan, c: string) => allItems(plan).filter((i) => i.block === 'main' && getExercise(i.exerciseId)!.category === c).length;
+    expect(cat(balance, 'balance')).toBeGreaterThan(cat(strength, 'balance'));
+    expect(cat(cardio, 'aerobic')).toBeGreaterThan(cat(strength, 'aerobic'));
+  });
+
+  it('a seated-only endurance plan includes seated cardio', () => {
+    const plan = okPlan(makeProfile({ goals: ['endurance'], minutesPerSession: 30, accessibility: { seatedOnly: true, needsSupport: false, limitedGrip: false, lowVision: false, hearingImpaired: false } }));
+    const aerobic = allItems(plan).filter((i) => getExercise(i.exerciseId)!.category === 'aerobic');
+    expect(aerobic.length).toBeGreaterThan(0);
+    for (const it of allItems(plan)) expect(getExercise(it.exerciseId)!.position).toBe('seated');
+  });
+
+  it('every exercise in the library can be tracked by the camera', () => {
+    for (const ex of EXERCISES) expect(ex.camera.supported, ex.id).toBe(true);
+  });
+});

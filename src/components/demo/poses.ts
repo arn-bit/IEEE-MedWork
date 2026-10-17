@@ -227,4 +227,51 @@ export const DEMOS: Record<string, Demo> = {
     a: p(SEATED_SIDE, { lKn: [130, 136], lAn: [160, 178], lToe: [164, 168], lEl: [106, 96], lWr: [120, 118] }),
     b: p(SEATED_SIDE, { head: [119, 60], neck: [112, 73], lSh: [111, 77], rSh: [111, 77], lKn: [130, 136], lAn: [160, 178], lToe: [164, 168], lEl: [120, 102], rEl: [116, 102], lWr: [132, 124], rWr: [128, 124] }),
   },
+
+  wall_sit: {
+    view: 'side', props: ['wall'], periodMs: 3200, caption: ['Back flat against the wall', 'Slide down, knees bent, and hold'],
+    a: shift(SIDE, 36, 0),
+    b: {
+      head: [141, 62], neck: [141, 77], pelvis: [139, 131], lSh: [141, 82], rSh: [141, 82], lEl: [152, 106], rEl: [148, 106], lWr: [164, 120], rWr: [160, 120],
+      lHip: [139, 131], rHip: [139, 131], lKn: [171, 131], rKn: [167, 131], lAn: [171, 184], rAn: [167, 184], lToe: [183, 186], rToe: [179, 186],
+    },
+  },
+  hip_hinge: {
+    view: 'side', props: [], periodMs: 2800, caption: ['Stand tall, hands on hips', 'Hips back, chest forward'],
+    a: p(SIDE, { lEl: [112, 84], rEl: [108, 84], lWr: [104, 104], rWr: [100, 104] }),
+    b: {
+      head: [143, 72], neck: [130, 80], pelvis: [88, 106], lSh: [126, 84], rSh: [126, 84], lEl: [124, 104], rEl: [120, 104], lWr: [106, 108], rWr: [102, 108],
+      lHip: [88, 106], rHip: [88, 106], lKn: [98, 146], rKn: [95, 146], lAn: [92, 183], rAn: [90, 183], lToe: [104, 185], rToe: [102, 185],
+    },
+  },
+  shoulder_press: {
+    view: 'front', props: ['weights', 'chair_front'], periodMs: 2600, caption: ['Weights at shoulder height', 'Press straight up'],
+    a: p(SEATED_FRONT, { lEl: [68, 92], rEl: [132, 92], lWr: [72, 70], rWr: [128, 70] }),
+    b: p(SEATED_FRONT, { lEl: [80, 48], rEl: [120, 48], lWr: [80, 22], rWr: [120, 22] }),
+  },
+  lateral_raise: {
+    view: 'front', props: ['weights'], periodMs: 2600, caption: ['Arms by your sides', 'Raise out to shoulder height'],
+    a: p(FRONT, { lEl: [82, 82], rEl: [118, 82], lWr: [82, 108], rWr: [118, 108] }),
+    b: p(FRONT, { lEl: [62, 58], rEl: [138, 58], lWr: [40, 58], rWr: [160, 58] }),
+  },
+  tandem_stand: {
+    view: 'side', props: ['wall'], periodMs: 3400, caption: ['Fingertips on the wall', 'One foot directly in front of the other'],
+    a: p(SIDE, { lEl: [126, 80], lWr: [147, 72], lAn: [101, 183], rAn: [97, 183], lToe: [113, 185], rToe: [109, 185] }),
+    b: p(SIDE, { lEl: [126, 80], lWr: [147, 72], lKn: [110, 146], lAn: [118, 183], lToe: [130, 185], rKn: [92, 146], rAn: [88, 183], rToe: [100, 185] }),
+  },
+  step_touch: {
+    view: 'front', props: [], periodMs: 1400, caption: ['Feet together, elbows bent', 'Step out to the side and tap'],
+    a: p(FRONT, { lEl: [78, 84], lWr: [90, 70], rEl: [122, 84], rWr: [110, 70], lKn: [94, 144], rKn: [106, 144], lAn: [95, 183], rAn: [105, 183], lToe: [91, 186], rToe: [109, 186] }),
+    b: p(FRONT, { lEl: [76, 80], lWr: [88, 66], rEl: [124, 86], rWr: [114, 74], rKn: [118, 143], rAn: [132, 183], rToe: [138, 186], lKn: [92, 144], lAn: [94, 183], lToe: [90, 186] }),
+  },
+  seated_brisk_march: {
+    view: 'side', props: ['chair_seat'], periodMs: 1000, caption: ['Sit tall, arms bent', 'Lift a knee briskly'],
+    a: p(SEATED_SIDE, { lEl: [108, 92], rEl: [104, 92], lWr: [118, 82], rWr: [114, 82] }),
+    b: p(SEATED_SIDE, { lKn: [124, 104], lAn: [130, 146], lToe: [140, 148], lEl: [92, 92], lWr: [84, 106], rEl: [110, 88], rWr: [120, 76] }),
+  },
+  seated_punches: {
+    view: 'front', props: ['chair_front'], periodMs: 1000, caption: ['Soft fists at chest height', 'Punch forward, alternating arms'],
+    a: p(SEATED_FRONT, { lEl: [86, 98], rEl: [114, 98], lWr: [92, 78], rWr: [108, 78] }),
+    b: p(SEATED_FRONT, { lEl: [76, 90], lWr: [66, 74], rEl: [116, 98], rWr: [108, 78] }),
+  },
 };

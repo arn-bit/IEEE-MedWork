@@ -11,8 +11,7 @@
 .nav a:hover {
   background: var(--surface-2);
 }
-@media (min-width: 960px) {
-  .nav a[aria-current='page']::before {
+:root[data-layout='desktop'] .nav a[aria-current='page']::before {
     content: '';
     position: absolute;
     left: -12px;
@@ -21,11 +20,10 @@
     width: 4px;
     border-radius: 0 4px 4px 0;
     background: var(--brand);
-  }
-  .nav a[aria-current='page'] {
+  }:root[data-layout='desktop'] .nav a[aria-current='page'] {
     font-weight: 680;
   }
-}
+
 .main {
   background: radial-gradient(900px 380px at 100% -80px, color-mix(in srgb, var(--hero-a) 38%, transparent), transparent 70%);
 }

@@ -10,6 +10,7 @@ import { EvidenceKindBadge, EvidenceRefs, formatDuration } from '../../component
 import { Icon, Wordmark, type IconName } from '../../components/Icon';
 import { FigureDemo } from '../../components/demo/FigureDemo';
 import { StatusBanners } from '../../components/Layouts';
+import { Scene } from '../../components/Illustrations';
 import { describePrescription } from '../plan/PlanPage';
 import { RestoreBackup } from './RestoreBackup';
 
@@ -163,6 +164,11 @@ export function WelcomePage() {
           {mainItems.length > 0 ? <HeroVisual items={mainItems} /> : null}
         </section>
 
+        <section className="land-wrap scene-band" aria-label="Movement for every body">
+          <Scene name="sunrise" />
+          <p className="scene-caption">Short, gentle sessions for every age, ability and day.</p>
+        </section>
+
         <section className="land-strip" aria-label="Built on public guidance">
           <div className="land-wrap strip-inner">
             <span className="strip-label">Built on public guidance published by</span>
@@ -305,6 +311,7 @@ export function WelcomePage() {
               <span className="eyebrow band-eyebrow">Privacy by design</span>
               <h2 id="priv-h">Your health data never has to leave your device</h2>
               <p className="band-lead">Not a promise in a policy: it’s how the app is built, and the tests prove it.</p>
+              <Scene name="privacy" className="scene-privacy" />
             </div>
             <ul className="band-list">
               <li>
@@ -336,6 +343,9 @@ export function WelcomePage() {
         </section>
 
         <section className="land-section land-wrap" aria-labelledby="scope-h">
+          <div className="scope-art">
+            <Scene name="together" />
+          </div>
           <div className="section-head">
             <span className="eyebrow">Honest scope</span>
             <h2 id="scope-h">What {BRAND.name} is, and isn’t</h2>

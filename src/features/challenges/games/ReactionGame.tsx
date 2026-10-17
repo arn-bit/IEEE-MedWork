@@ -10,7 +10,7 @@ const LANE_KEY: Record<string, Lane> = { ArrowLeft: 0, a: 0, ArrowDown: 1, ' ': 
 const LANE_NAME = ['left', 'middle', 'right'];
 const ROUND_MS = 30000;
 
-export function ReactionGame() {
+export function ReactionGame({ onEnd }: { onEnd?: () => void }) {
   const { data, updateGames } = useStore();
   const [pace, setPace] = useState<'relaxed' | 'normal'>('relaxed');
   const [running, setRunning] = useState(false);
@@ -137,7 +137,7 @@ export function ReactionGame() {
             </Callout>
           ) : null}
           <div>
-            <button className="btn btn-primary btn-lg" onClick={start}>
+            <button className="btn btn-primary btn-lg" onClick={finished && onEnd ? onEnd : start}>
               <Icon name="play" size={18} /> {finished ? 'Play again' : 'Start round'}
             </button>
           </div>

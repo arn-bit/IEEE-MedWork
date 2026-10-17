@@ -16,15 +16,19 @@ import { ageBandFor } from '../../domain/safety/screening';
 import { countsAsSession } from '../../domain/gamification/rules';
 import { Bar, Callout, PageHead, Stepper } from '../../components/ui';
 import { Icon } from '../../components/Icon';
+import { GAME_COSTS, TOKEN_RULES, garden } from '../../domain/gamification/tokens';
+import { Garden } from './Garden';
+import { Scene } from '../../components/Illustrations';
 
 const GAMES = [
-  { to: '/challenges/balance', icon: 'balance', title: 'Steady Stance', desc: 'A supported balance hold with levels from seated to single-leg. Self-timed, no camera.' },
-  { to: '/challenges/reaction', icon: 'game', title: 'Reaction Reach', desc: 'Tap or press keys as targets appear. Gentle coordination practice; works seated.' },
-  { to: '/challenges/quiz', icon: 'quiz', title: 'Move Smart Quiz', desc: 'Short questions on activity guidance. Every answer links to its source.' },
+  { to: '/challenges/balance', icon: 'balance', title: 'Steady Stance', cost: GAME_COSTS.balance, desc: 'A supported balance hold with levels from seated to single-leg. Self-timed, no camera.' },
+  { to: '/challenges/reaction', icon: 'game', title: 'Reaction Reach', cost: GAME_COSTS.reaction, desc: 'Tap or press keys as targets appear. Gentle coordination practice; works seated.' },
+  { to: '/challenges/memory', icon: 'spark', title: 'Memory Match', cost: GAME_COSTS.memory, desc: 'Pair up exercise pictures. Calm, no timer, great for seated play.' },
+  { to: '/challenges/quiz', icon: 'quiz', title: 'Move Smart Quiz', cost: 0, desc: 'Short questions on activity guidance. Every answer links to its source. Always free.' },
 ] as const;
 
 export function ChallengesPage() {
-  const { data, achievements, updateSettings, addFriend, removeFriend, setPersonalGoal } = useStore();
+  const { data, tokens, achievements, updateSettings, addFriend, removeFriend, setPersonalGoal } = useStore();
   const profile = data.profile!;
   const s = data.settings;
   const band = ageBandFor(profile.ageYears);
@@ -44,6 +48,7 @@ export function ChallengesPage() {
     ...(s.pseudonym ? [{ name: `${s.pseudonym} (you)`, points: myPoints, me: true }] : []),
     ...data.friends.filter((f) => f.week === wk && canCompare(competitionBand, f.band)).map((f) => ({ name: f.name, points: f.points, me: false })),
   ].sort((a, b) => b.points - a.points);
+  const plots = garden(data.sessions, profile.daysPerWeek, data.pauses ?? [], now);
   const goal = data.personalGoal ? personalGoalProgress(data.personalGoal, data.sessions) : null;
 
   return (
@@ -51,6 +56,33 @@ export function ChallengesPage() {
       <PageHead eyebrow="Challenges" title="Challenges & games">
         Rewards here are for consistency, learning and looking after yourself — never for doing more than your plan.
       </PageHead>
+
+      <section className="card stack token-wallet" aria-labelledby="wallet-h">
+        <div className="row-between">
+          <div className="row" style={{ gap: 12 }}>
+            <span className="coin coin-lg" aria-hidden="true">
+              <Icon name="coin" size={28} />
+            </span>
+            <div>
+              <h2 id="wallet-h" style={{ margin: 0 }}>
+                <span className="num">{tokens.balance}</span> tokens
+              </h2>
+              <span className="small muted">
+                {tokens.earned} earned · {tokens.spent} spent
+              </span>
+            </div>
+          </div>
+          <Link to="/workout" className="btn btn-primary btn-sm">
+            <Icon name="play" size={16} /> Earn more
+          </Link>
+        </div>
+        <p className="small muted">
+          Each workout earns {TOKEN_RULES.base} tokens plus {TOKEN_RULES.perExercise} per exercise you finish. Only the workouts in your own plan count each week, and a session you stop because you didn’t feel right still earns the
+          full reward. Choosing to rest earns {TOKEN_RULES.perRestChoice}.
+        </p>
+        <Garden plots={plots} />
+        {tokens.earned === 0 ? <Scene name="bloom" className="scene-small" /> : null}
+      </section>
 
       <section className="stack" aria-labelledby="games-h">
         <h2 id="games-h">Minigames</h2>
@@ -60,7 +92,10 @@ export function ChallengesPage() {
               <span className="icon-wrap" style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--brand-soft)', color: 'var(--brand)', display: 'grid', placeItems: 'center' }}>
                 <Icon name={g.icon} />
               </span>
-              <strong>{g.title}</strong>
+              <div className="row-between">
+                <strong>{g.title}</strong>
+                <span className="badge badge-accent">{g.cost === 0 ? 'Free' : `${g.cost} tokens`}</span>
+              </div>
               <span className="small muted">{g.desc}</span>
             </Link>
           ))}

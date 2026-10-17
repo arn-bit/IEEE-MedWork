@@ -2,6 +2,8 @@
 @import './landing.css';
 @import './onboarding.css';
 @import './polish.css';
+@import './workout.css';
+@import './games.css';
 
 *,
 *::before,
@@ -195,14 +197,11 @@ p {
 .nav .nav-label-long {
   display: none;
 }
-@media (min-width: 960px) {
-  .shell {
+:root[data-layout='desktop'] .shell {
     grid-template-columns: 248px 1fr;
-  }
-  .topbar {
+  }:root[data-layout='desktop'] .topbar {
     display: none;
-  }
-  .nav {
+  }:root[data-layout='desktop'] .nav {
     position: sticky;
     top: 0;
     height: 100dvh;
@@ -213,43 +212,36 @@ p {
     border-top: 0;
     border-right: 1px solid var(--line);
     background: var(--surface);
-  }
-  .nav .brand {
+  }:root[data-layout='desktop'] .nav .brand {
     padding: 0 10px var(--s-5);
-  }
-  .nav a {
+  }:root[data-layout='desktop'] .nav a {
     flex-direction: row;
     justify-content: flex-start;
     gap: 12px;
     font-size: 0.95rem;
     padding: 10px 12px;
     min-height: 44px;
-  }
-  .nav .nav-label-short {
+  }:root[data-layout='desktop'] .nav .nav-label-short {
     display: none;
-  }
-  .nav .nav-label-long {
+  }:root[data-layout='desktop'] .nav .nav-label-long {
     display: inline;
-  }
-  .nav-foot {
+  }:root[data-layout='desktop'] .nav-foot {
     margin-top: auto;
     padding: var(--s-3);
     font-size: 0.78rem;
     color: var(--ink-3);
-  }
-  .main {
+  }:root[data-layout='desktop'] .main {
     padding: var(--s-6) var(--s-6) var(--s-7);
   }
-}
+
 /* Specificity matches `.nav a` so these rules win on small screens. */
 .nav .nav-desktop-only {
   display: none;
 }
-@media (min-width: 960px) {
-  .nav .nav-desktop-only {
+:root[data-layout='desktop'] .nav .nav-desktop-only {
     display: flex;
   }
-}
+
 
 /* ─────────────── Layout helpers ─────────────── */
 .stack {
@@ -965,11 +957,10 @@ dialog.modal::backdrop {
   pointer-events: auto;
   box-shadow: var(--shadow-2);
 }
-@media (min-width: 960px) {
-  .sticky-stop {
+:root[data-layout='desktop'] .sticky-stop {
     bottom: var(--s-4);
   }
-}
+
 
 /* ─────────────── Charts ─────────────── */
 .week-bars {

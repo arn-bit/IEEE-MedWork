@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { PageHead, Callout } from '../../components/ui';
 import { MODEL_INFO } from '../../pose/poseModel';
 import { COUNTERS } from '../../pose/counters';
+import { ACTIVITIES, HOLDS } from '../../pose/detectors';
 
 export function AboutPage() {
   return (
@@ -44,8 +45,9 @@ export function AboutPage() {
           bucket and is served by this app. Video frames are processed in memory and discarded.
         </p>
         <p className="small">
-          Rep counting is supported for: {Object.values(COUNTERS).map((c) => c.label).join(', ')}. Each uses its own joint-angle state machine with smoothing, hysteresis, minimum hold
-          frames and a minimum rep duration, and pauses when tracking confidence is low.
+          Every exercise in the library can be tracked by camera in one of three ways. Rep counting: {Object.values(COUNTERS).map((c) => c.label).join(', ')} and more, each with its
+          own joint-angle state machine with smoothing, hysteresis, minimum hold frames and a minimum rep duration. Hold timing ({Object.keys(HOLDS).length} positions) runs the timer only while you are in
+          position. Movement tracking ({Object.keys(ACTIVITIES).length} kinds) times continuous activity such as marching or walking in place. All of them pause when tracking confidence is low.
         </p>
         <Callout tone="warn" title="Not medically validated">
           Counting thresholds were tuned on simulated landmark data and typical joint angles, not validated against clinical motion capture. 2D camera estimates are affected by

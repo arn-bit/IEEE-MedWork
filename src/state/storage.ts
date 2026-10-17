@@ -21,6 +21,11 @@ export interface Settings {
   voiceCues: boolean;
   minimizeHealthData: boolean;
   cameraPrivacyAck: boolean;
+  /** 'auto' picks phone or desktop layout from the device; the others force one. */
+  layout: 'auto' | 'phone' | 'desktop';
+  /** Short tone and vibration when a rep is counted, so you can tell it's counting. */
+  repSound: boolean;
+  repHaptics: boolean;
 }
 
 export interface AppData {
@@ -31,7 +36,7 @@ export interface AppData {
   pauses: Pause[];
   restChoices: number;
   settings: Settings;
-  games: { quizCompleted: boolean; quizBest: number; balanceCompletions: number; reactionBest: number | null };
+  games: { quizCompleted: boolean; quizBest: number; balanceCompletions: number; reactionBest: number | null; tokensSpent: number; plays: { game: string; at: string }[]; memoryBest: number | null };
   friends: ScoreCard[];
   personalGoal: PersonalGoal | null;
   seenAchievements: string[];
@@ -50,6 +55,9 @@ export function defaultSettings(): Settings {
     voiceCues: false,
     minimizeHealthData: false,
     cameraPrivacyAck: false,
+    layout: 'auto',
+    repSound: true,
+    repHaptics: true,
   };
 }
 
@@ -62,7 +70,7 @@ export function defaultData(): AppData {
     pauses: [],
     restChoices: 0,
     settings: defaultSettings(),
-    games: { quizCompleted: false, quizBest: 0, balanceCompletions: 0, reactionBest: null },
+    games: { quizCompleted: false, quizBest: 0, balanceCompletions: 0, reactionBest: null, tokensSpent: 0, plays: [], memoryBest: null },
     friends: [],
     personalGoal: null,
     seenAchievements: [],

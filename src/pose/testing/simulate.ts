@@ -17,6 +17,7 @@ export interface BodyParams {
   trunkLean?: number; // degrees from vertical
   visibility?: number;
   hidden?: number[]; // landmark indices with visibility 0.1
+  hipAngle?: number; // shoulder-hip-knee angle (side view hinge / bridge)
   noise?: number; // max uniform jitter added to x/y
   seed?: number;
 }
@@ -125,6 +126,25 @@ export function makeBody(p: BodyParams = {}): Point[] {
     for (const i of side === 'left' ? [17, 19, 21] : [18, 20, 22]) set(i, wrist.x, wrist.y + 0.01);
   }
 
+  if (p.hipAngle !== undefined) {
+    // Rotate the trunk about the hip so shoulder-hip-knee equals the requested angle.
+    const ang = (p.hipAngle * Math.PI) / 180;
+    for (const [shI, hipI, kneeI] of [
+      [LM.leftShoulder, LM.leftHip, LM.leftKnee],
+      [LM.rightShoulder, LM.rightHip, LM.rightKnee],
+    ] as const) {
+      const h = pts[hipI]!;
+      const k = pts[kneeI]!;
+      const vx = k.x - h.x;
+      const vy = k.y - h.y;
+      const len = Math.hypot(vx, vy) || 1;
+      const ux = vx / len;
+      const uy = vy / len;
+      const rx = ux * Math.cos(ang) - uy * Math.sin(ang);
+      const ry = ux * Math.sin(ang) + uy * Math.cos(ang);
+      pts[shI] = { ...pts[shI]!, x: h.x + rx * TORSO, y: h.y + ry * TORSO };
+    }
+  }
   const sh = { x: (pts[LM.leftShoulder]!.x + pts[LM.rightShoulder]!.x) / 2, y: pts[LM.leftShoulder]!.y };
   set(LM.nose, sh.x, sh.y - 0.1);
   for (let i = 1; i <= 10; i++) set(i, sh.x + (i % 2 ? 0.01 : -0.01), sh.y - 0.11);

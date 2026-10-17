@@ -5,9 +5,11 @@ import { DAY_NAMES } from '../../domain/plan/engine';
 import { getExercise } from '../../domain/exercises/library';
 import { triageSymptom, type SymptomReport } from '../../domain/safety/screening';
 import { ACHIEVEMENTS, earnedAchievements } from '../../domain/gamification/rules';
+import { tokensForNewSession } from '../../domain/gamification/tokens';
 import type { PlannedSession, SessionLog } from '../../domain/types';
 import { Callout, EmptyState, PageHead, formatDuration } from '../../components/ui';
 import { Icon } from '../../components/Icon';
+import { Scene } from '../../components/Illustrations';
 import { EmergencyPanel } from '../safety/SafetyPanels';
 import { SessionRunner, type RunnerResult } from './SessionRunner';
 import { todayIndex } from '../../domain/dates';
@@ -39,6 +41,7 @@ export function WorkoutPage() {
   const [rpe, setRpe] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [saved, setSaved] = useState<string[] | null>(null);
+  const [earnedTokens, setEarnedTokens] = useState(0);
   const [restReason, setRestReason] = useState<'unwell' | 'pain'>('unwell');
 
   if (!plan) {
@@ -56,6 +59,7 @@ export function WorkoutPage() {
   if (stage === 'rest') {
     return (
       <div className="card stack" style={{ maxWidth: 640 }}>
+        <Scene name="rest" className="scene-small" />
         <span className="eyebrow">Check-in</span>
         <h1>Rest today</h1>
         <p>
@@ -162,7 +166,7 @@ export function WorkoutPage() {
               <h2>Camera counting</h2>
             </div>
             <p className="small">
-              Counts reps for {cameraCount} of {selected.items.length} exercises in this workout and offers limited technique cues. The others use the buttons.
+              Counts reps, times your holds and tracks movement for {cameraCount} of {selected.items.length} exercises in this workout, in a full-screen view with a timer and a rep counter. Anything it can’t follow falls back to the buttons.
             </p>
             <ul className="bullets small">
               <li>We ask for camera permission only when you choose this.</li>
@@ -259,6 +263,7 @@ export function WorkoutPage() {
       personalGoal: data.personalGoal,
       now: new Date(),
     });
+    setEarnedTokens(tokensForNewSession(data.sessions, full, data.profile!.daysPerWeek));
     logSession(full);
     setSaved([...after].filter((id) => !before.has(id)));
   };
@@ -331,6 +336,23 @@ export function WorkoutPage() {
           <Callout tone="ok" title="Saved">
             Logged on this device. {log.endedReason !== 'completed' ? 'Ending early still counts as showing up.' : ''}
           </Callout>
+          <div className="token-earned" role="status">
+            <span className="coin" aria-hidden="true">
+              <Icon name="coin" size={22} />
+            </span>
+            <span>
+              {earnedTokens > 0 ? (
+                <>
+                  <strong>+{earnedTokens} tokens</strong> for the minigames.
+                </>
+              ) : (
+                <>No extra tokens this time: you’ve already done every workout in your plan this week. Rest is part of the plan.</>
+              )}
+            </span>
+            <Link to="/challenges" className="btn btn-secondary btn-sm">
+              Play
+            </Link>
+          </div>
           {saved.length ? (
             <div className="stack-sm">
               <h3>New achievement{saved.length > 1 ? 's' : ''}</h3>

@@ -17,7 +17,11 @@ import { SummaryPage } from './features/profile/SummaryPage';
 import { BalanceGame } from './features/challenges/games/BalanceGame';
 import { ReactionGame } from './features/challenges/games/ReactionGame';
 import { QuizGame } from './features/challenges/games/QuizGame';
+import { MemoryGame } from './features/challenges/games/MemoryGame';
+import { TokenGate } from './features/challenges/TokenGate';
+import { GAME_COSTS } from './domain/gamification/tokens';
 import { BRAND } from './brand';
+import { useApplyLayout } from './hooks/useLayout';
 
 // Dev-only validation-trace recorder. `import.meta.env.DEV` is false in production builds, so this
 // branch (and the dynamic import) is removed and /dev/record falls through to "Page not found".
@@ -35,6 +39,7 @@ const NAV: { to: string; label: string; short: string; icon: IconName }[] = [
 function useApplySettings() {
   const { data } = useStore();
   const s = data.settings;
+  useApplyLayout(s.layout);
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.text = s.textSize;
@@ -60,6 +65,7 @@ function ScrollToTop() {
 }
 
 function Shell({ children }: { children: ReactNode }) {
+  const { tokens } = useStore();
   return (
     <div className="shell">
       <a href="#main" className="skip-link">
@@ -74,6 +80,11 @@ function Shell({ children }: { children: ReactNode }) {
             <Icon name={n.icon} size={22} />
             <span className="nav-label-short">{n.short}</span>
             <span className="nav-label-long">{n.label}</span>
+            {n.to === '/challenges' && tokens.balance > 0 ? (
+              <span className="nav-badge" aria-hidden="true">
+                {tokens.balance}
+              </span>
+            ) : null}
           </NavLink>
         ))}
         <div className="nav-foot nav-desktop-only stack-sm">
@@ -129,8 +140,42 @@ export function App() {
         <Route path="/workout" element={<Shell><RequireProfile><WorkoutPage /></RequireProfile></Shell>} />
         <Route path="/progress" element={<Shell><RequireProfile><ProgressPage /></RequireProfile></Shell>} />
         <Route path="/challenges" element={<Shell><RequireProfile><ChallengesPage /></RequireProfile></Shell>} />
-        <Route path="/challenges/balance" element={<Shell><RequireProfile><BalanceGame /></RequireProfile></Shell>} />
-        <Route path="/challenges/reaction" element={<Shell><RequireProfile><ReactionGame /></RequireProfile></Shell>} />
+        <Route
+          path="/challenges/balance"
+          element={
+            <Shell>
+              <RequireProfile>
+                <TokenGate game="balance" cost={GAME_COSTS.balance} title="Steady Stance" blurb="A short, supported balance hold with levels from seated to single-leg.">
+                  {(end) => <BalanceGame onEnd={end} />}
+                </TokenGate>
+              </RequireProfile>
+            </Shell>
+          }
+        />
+        <Route
+          path="/challenges/reaction"
+          element={
+            <Shell>
+              <RequireProfile>
+                <TokenGate game="reaction" cost={GAME_COSTS.reaction} title="Reaction Reach" blurb="Tap targets as they appear. Gentle coordination practice that works seated.">
+                  {(end) => <ReactionGame onEnd={end} />}
+                </TokenGate>
+              </RequireProfile>
+            </Shell>
+          }
+        />
+        <Route
+          path="/challenges/memory"
+          element={
+            <Shell>
+              <RequireProfile>
+                <TokenGate game="memory" cost={GAME_COSTS.memory} title="Memory Match" blurb="Pair up exercise pictures. Calm, no timer.">
+                  {(end) => <MemoryGame onEnd={end} />}
+                </TokenGate>
+              </RequireProfile>
+            </Shell>
+          }
+        />
         <Route path="/challenges/quiz" element={<Adaptive><QuizGame /></Adaptive>} />
         <Route path="/profile" element={<Shell><ProfilePage /></Shell>} />
         <Route path="/summary" element={<Shell><RequireProfile><SummaryPage /></RequireProfile></Shell>} />

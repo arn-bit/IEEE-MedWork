@@ -37,6 +37,8 @@ Open http://localhost:5180 and choose **Build my plan**. Camera tracking needs `
   - Mild limitations become explained exclusions.
   - An in-session "Stop — I don't feel right" button triages symptoms.
 - **Plan engine:** deterministic and time-budgeted (never exceeds your limit), using a 30-exercise structured library. Every prescription cites sources and is labelled as guideline, position stand, systematic review or *product heuristic*. "Why this plan?" shows the full decision trace, assumptions and exclusions.
+- **Plans** differ by person: goals, ability, equipment, age and time shape a weekly theme rotation and exercise choice.
+- **Layout:** phone or desktop layout is detected automatically (bottom tabs vs. sidebar) and can be overridden in Profile.
 - **Workouts:**
   - A check-in suggests rest when you're unwell.
   - Animated demos, then sets, rest timers, pause/resume/restart/skip.
@@ -44,7 +46,9 @@ Open http://localhost:5180 and choose **Build my plan**. Camera tracking needs `
   - A summary with self-rated effort (CDC 0–10 scale).
 - **Camera tracking:**
   - MediaPipe Pose Landmarker Lite runs on-device.
-  - Exercise-specific counters for squats, sit-to-stand, wall press-ups, arm raises and knee lifts.
+  - **Every exercise** is camera-trackable: rep counters (joint-angle state machines), hold detectors (timer runs only while you're in position) and movement detectors (marching, walking in place).
+  - A full-screen view with a timer in one corner, a rep counter in the other, and a status pill that says plainly whether you're being counted.
+  - Optional beep/vibration on each counted rep.
   - Positioning guidance and an "In position" check.
   - Hedged, confidence-gated form cues and a reduced-range mode.
   - The camera can be turned off at any time.
@@ -53,7 +57,7 @@ Open http://localhost:5180 and choose **Build my plan**. Camera tracking needs `
   - Activity minutes against WHO/CDC targets, with logging for other activity.
   - Effort ratings and history.
   - Rule-based "ready to progress" hints, held back after symptom stops.
-- **Challenges:** achievements for consistency, learning and choosing rest; a personal goal; an opt-in friends leaderboard using share codes (no health data, youth never compared with adults, private mode); and 3 minigames (Steady Stance, Reaction Reach, Move Smart Quiz).
+- **Challenges:** achievements for consistency, learning and choosing rest; a personal goal; an opt-in friends leaderboard using share codes (no health data, youth never compared with adults, private mode); and minigames you play with **tokens** earned from your workouts (Steady Stance, Reaction Reach, Memory Match; the Move Smart Quiz is free). Tokens reward showing up for your own plan, never extra volume, and a weekly garden grows with your consistency.
 - **Privacy:** no account, server, analytics or CDN. A CSP blocks all third-party connections. Includes JSON export, delete-everything, a "keep fewer health details" mode, offline support, and a printable summary for a health professional.
 - **Accessibility:** seated-only plans, large text, high contrast, reduced motion, keyboard navigation, on-device spoken cues, and axe-tested light and dark themes.
 
@@ -95,7 +99,7 @@ The rest of the CSP is in a `<meta>` tag injected at build time.
 
 ## Known limitations
 
-- Rep counting and form cues were tuned on simulated landmarks. **Accuracy with real people is unmeasured.**
+- Rep counting, hold timing, movement detection and form cues were tuned on simulated landmarks. **Accuracy with real people is unmeasured**, especially for the newer detectors.
 - Exercise content is checked against public NHS guidance but **not clinician-reviewed**.
 - Data is in browser localStorage, which is **not encrypted at rest**.
 - Leaderboards use honour-system share codes (there's no server to verify them).

@@ -27,8 +27,8 @@ export interface Point {
 export type Frame = readonly Point[];
 
 export const SIDES = {
-  left: { shoulder: LM.leftShoulder, elbow: LM.leftElbow, wrist: LM.leftWrist, hip: LM.leftHip, knee: LM.leftKnee, ankle: LM.leftAnkle },
-  right: { shoulder: LM.rightShoulder, elbow: LM.rightElbow, wrist: LM.rightWrist, hip: LM.rightHip, knee: LM.rightKnee, ankle: LM.rightAnkle },
+  left: { shoulder: LM.leftShoulder, elbow: LM.leftElbow, wrist: LM.leftWrist, hip: LM.leftHip, knee: LM.leftKnee, ankle: LM.leftAnkle, heel: 29, toe: 31 },
+  right: { shoulder: LM.rightShoulder, elbow: LM.rightElbow, wrist: LM.rightWrist, hip: LM.rightHip, knee: LM.rightKnee, ankle: LM.rightAnkle, heel: 30, toe: 32 },
 } as const;
 export type Side = keyof typeof SIDES;
 export type Joint = keyof (typeof SIDES)['left'];
@@ -73,6 +73,11 @@ export function bestSide(frame: Frame, joints: readonly Joint[]): Side {
 
 export function sideIdx(side: Side, joints: readonly Joint[]): number[] {
   return joints.map((j) => SIDES[side][j]);
+}
+
+/** Distance from mid-shoulder to mid-hip: the body-size unit used to scale distances. */
+export function torsoLength(f: Frame): number {
+  return dist(mid(f[LM.leftShoulder]!, f[LM.rightShoulder]!), mid(f[LM.leftHip]!, f[LM.rightHip]!));
 }
 
 /** Rough camera-view estimate from shoulder width relative to torso length. */

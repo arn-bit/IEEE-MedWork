@@ -4,6 +4,7 @@ import { emptyHealth } from '../domain/profile';
 import { earnedAchievements, type Pause, type PersonalGoal, type ScoreCard } from '../domain/gamification/rules';
 import type { PlanResult, Profile, SessionLog } from '../domain/types';
 import type { ActivityEntry } from '../domain/plan/progression';
+import { tokenSummary, type TokenSummary } from '../domain/gamification/tokens';
 import { defaultData, deleteAllData, loadData, saveData, type AppData, type LoadResult, type Settings } from './storage';
 
 type Action =
@@ -20,6 +21,7 @@ type Action =
   | { type: 'seenAchievements'; ids: string[] }
   | { type: 'addActivity'; entry: ActivityEntry }
   | { type: 'removeActivity'; id: string }
+  | { type: 'spendTokens'; game: string; cost: number; at: string }
   | { type: 'replaceAll'; data: AppData }
   | { type: 'reset' };
 
@@ -58,6 +60,11 @@ function reducer(state: AppData, a: Action): AppData {
       return { ...state, activities: [...state.activities, a.entry] };
     case 'removeActivity':
       return { ...state, activities: state.activities.filter((x) => x.id !== a.id) };
+    case 'spendTokens': {
+      const t = tokenSummary(state.sessions, state.profile?.daysPerWeek ?? 3, state.restChoices, state.games.tokensSpent);
+      if (a.cost < 0 || t.balance < a.cost) return state; // never spend what you don't have
+      return { ...state, games: { ...state.games, tokensSpent: state.games.tokensSpent + a.cost, plays: [...state.games.plays.slice(-49), { game: a.game, at: a.at }] } };
+    }
     case 'replaceAll':
       return a.data;
     case 'reset':
@@ -83,6 +90,9 @@ interface StoreValue {
   removeFriend(name: string): void;
   setPersonalGoal(goal: PersonalGoal | null): void;
   markAchievementsSeen(ids: string[]): void;
+  tokens: TokenSummary;
+  /** Spend tokens to play a game. Returns false (and spends nothing) if the balance is too low. */
+  spendTokens(game: string, cost: number): boolean;
   importData(data: AppData): void;
   addActivity(entry: ActivityEntry): void;
   removeActivity(id: string): void;
@@ -141,6 +151,11 @@ export function StoreProvider({
     [data.sessions, data.profile?.daysPerWeek, data.pauses, data.restChoices, data.games, data.personalGoal],
   );
 
+  const tokens = useMemo(
+    () => tokenSummary(data.sessions, data.profile?.daysPerWeek ?? 3, data.restChoices, data.games.tokensSpent),
+    [data.sessions, data.profile?.daysPerWeek, data.restChoices, data.games.tokensSpent],
+  );
+
   const submitProfile = useCallback((profile: Profile) => {
     const result = generatePlan(profile);
     dispatch({ type: 'setProfileAndPlan', profile, result });
@@ -164,6 +179,12 @@ export function StoreProvider({
     removeFriend: (name) => dispatch({ type: 'removeFriend', name }),
     setPersonalGoal: (goal) => dispatch({ type: 'personalGoal', goal }),
     markAchievementsSeen: (ids) => dispatch({ type: 'seenAchievements', ids }),
+    tokens,
+    spendTokens: (game, cost) => {
+      if (tokens.balance < cost) return false;
+      dispatch({ type: 'spendTokens', game, cost, at: new Date().toISOString() });
+      return true;
+    },
     importData: (data) => dispatch({ type: 'replaceAll', data }),
     addActivity: (entry) => dispatch({ type: 'addActivity', entry }),
     removeActivity: (id) => dispatch({ type: 'removeActivity', id }),

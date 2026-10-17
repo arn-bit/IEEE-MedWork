@@ -23,7 +23,7 @@ const LEVELS: Level[] = [
 
 type Phase = 'setup' | 'countdown' | 'hold' | 'done';
 
-export function BalanceGame() {
+export function BalanceGame({ onEnd }: { onEnd?: () => void }) {
   const { data, updateGames } = useStore();
   const profile = data.profile!;
   const seatedOnly = profile.accessibility.seatedOnly || profile.health.clinicianRestrictions.includes('seated_only');
@@ -138,7 +138,7 @@ export function BalanceGame() {
           </Callout>
           <p className="small muted">Completed {data.games.balanceCompletions} time{data.games.balanceCompletions === 1 ? '' : 's'}. This is self-timed and self-reported; the app does not measure your balance.</p>
           <div className="row">
-            <button className="btn btn-primary" onClick={() => setPhase('setup')}>
+            <button className="btn btn-primary" onClick={() => (onEnd ? onEnd() : setPhase('setup'))}>
               Again
             </button>
             <Link to="/challenges" className="btn btn-secondary">
