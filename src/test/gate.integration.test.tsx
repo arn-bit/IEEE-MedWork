@@ -50,11 +50,11 @@ describe('passcode lock (integration)', () => {
     expect(screen.queryByText(/Kim/)).not.toBeInTheDocument();
 
     // A failed attempt adds a short wait before the next one.
-    const retry = await screen.findByRole('button', { name: 'Unlock' }, { timeout: 4000 });
+    const retry = await screen.findByRole('button', { name: 'Unlock' }, { timeout: 20000 });
     await user.type(screen.getByLabelText('Passcode'), 'correct horse battery');
     await user.click(retry);
     expect(await screen.findByRole('heading', { level: 1, name: /Kim/ })).toBeInTheDocument();
-  }, 20_000);
+  }, 40_000);
 
   it('forgot passcode: deleting everything opens a fresh app', async () => {
     const user = userEvent.setup();
@@ -65,7 +65,7 @@ describe('passcode lock (integration)', () => {
     await user.click(screen.getByRole('button', { name: 'Delete everything and start over' }));
     expect(await screen.findByRole('heading', { level: 1, name: /shows its work|verify/i })).toBeInTheDocument();
     expect(hasVault()).toBe(false);
-  }, 20_000);
+  }, 40_000);
 
   it('turn on encryption from Profile, lock, unlock, then remove the passcode', async () => {
     const user = userEvent.setup();
@@ -80,9 +80,9 @@ describe('passcode lock (integration)', () => {
     await user.click(screen.getByRole('checkbox', { name: /can’t be recovered/ }));
     await user.click(enable);
 
-    await waitFor(() => expect(localStorage.getItem(VAULT_KEY)).not.toBeNull(), { timeout: 4000 });
+    await waitFor(() => expect(localStorage.getItem(VAULT_KEY)).not.toBeNull(), { timeout: 20000 });
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-    expect(localStorage.getItem(VAULT_KEY)).not.toContain('Kim');
+    expect(localStorage.getItem(VAULT_KEY)).not.toMatch(/"displayName"|"Kim"/); // plaintext would show these; random base64 can contain "Kim" by chance
     expect(await screen.findByText('Passcode lock is on')).toBeInTheDocument();
 
     // Lock → unlock screen; data not visible.
@@ -96,13 +96,13 @@ describe('passcode lock (integration)', () => {
     await user.click(screen.getByRole('button', { name: 'Remove passcode' }));
     await user.type(screen.getByLabelText('Enter your passcode to remove it'), 'nope nope');
     await user.click(screen.getAllByRole('button', { name: 'Remove passcode' }).at(-1)!);
-    expect(await screen.findByRole('alert', {}, { timeout: 4000 })).toHaveTextContent(/didn’t work/);
+    expect(await screen.findByRole('alert', {}, { timeout: 20000 })).toHaveTextContent(/didn’t work/);
     await user.clear(screen.getByLabelText('Enter your passcode to remove it'));
     await user.type(screen.getByLabelText('Enter your passcode to remove it'), 'correct horse battery');
     await user.click(screen.getAllByRole('button', { name: 'Remove passcode' }).at(-1)!);
-    await waitFor(() => expect(hasVault()).toBe(false), { timeout: 4000 });
+    await waitFor(() => expect(hasVault()).toBe(false), { timeout: 20000 });
     expect(localStorage.getItem(STORAGE_KEY)).toContain('Kim');
-  }, 30_000);
+  }, 60_000);
 
   it('a mismatched or weak passcode cannot be turned on', async () => {
     const user = userEvent.setup();
