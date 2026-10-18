@@ -2,7 +2,7 @@ import type { Plan, Profile, SessionLog } from '../domain/types';
 import type { Pause, PersonalGoal, ScoreCard } from '../domain/gamification/rules';
 import type { ActivityEntry } from '../domain/plan/progression';
 import { normalizeProfile } from '../domain/profile';
-import type { MealEntry } from '../nutrition/foods';
+import type { Food, FoodExample, MealEntry } from '../nutrition/foods';
 
 /**
  * Local-first persistence. Everything lives in this browser's localStorage under the `mw:` prefix.
@@ -47,6 +47,10 @@ export interface AppData {
   activities: ActivityEntry[];
   /** Meals the user logged on the Nutrition page. Photos are never stored, only the confirmed result. */
   meals: MealEntry[];
+  /** Foods you added by labelling a photo the app got wrong. */
+  userFoods: Food[];
+  /** Fingerprints (never photos) of photos you labelled, so similar photos are recognised next time. */
+  foodExamples: FoodExample[];
 }
 
 export function defaultSettings(): Settings {
@@ -82,6 +86,8 @@ export function defaultData(): AppData {
     seenAchievements: [],
     activities: [],
     meals: [],
+    userFoods: [],
+    foodExamples: [],
   };
 }
 
@@ -112,6 +118,14 @@ export function sanitize(raw: unknown): AppData | null {
       : [],
     meals: Array.isArray(raw.meals)
       ? (raw.meals.filter((m) => isObj(m) && typeof m.id === 'string' && typeof m.name === 'string' && typeof m.kcal === 'number' && typeof m.at === 'string').slice(-2000) as unknown as MealEntry[])
+      : [],
+    userFoods: Array.isArray(raw.userFoods)
+      ? (raw.userFoods
+          .filter((f) => isObj(f) && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.kcal === 'number')
+          .slice(0, 300) as unknown as Food[])
+      : [],
+    foodExamples: Array.isArray(raw.foodExamples)
+      ? (raw.foodExamples.filter((e) => isObj(e) && typeof e.id === 'string' && typeof e.foodId === 'string' && typeof e.v === 'string' && e.v.length < 1000).slice(-400) as unknown as FoodExample[])
       : [],
   };
 }

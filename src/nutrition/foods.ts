@@ -179,8 +179,22 @@ export const ALL_FOODS: readonly Food[] = [...FOODS, ...EXTRA_FOODS, ...WORLD_FO
 export function foodByIndex(i: number): Food | undefined {
   return FOODS[i];
 }
-export function foodById(id: string): Food | undefined {
-  return ALL_FOODS.find((f) => f.id === id);
+export function foodById(id: string, userFoods: readonly Food[] = []): Food | undefined {
+  return userFoods.find((f) => f.id === id) ?? ALL_FOODS.find((f) => f.id === id);
+}
+
+/** A food the user added by labelling a photo. */
+export type UserFood = Food;
+
+/**
+ * A labelled example: the CLIP "fingerprint" of a photo the user taught the app. Only this vector is kept
+ * (quantised to one byte per number, base64), never the photo itself.
+ */
+export interface FoodExample {
+  id: string;
+  foodId: string;
+  /** base64 of 512 signed bytes: the unit-length image vector times 127. */
+  v: string;
 }
 
 export interface Nutrients {

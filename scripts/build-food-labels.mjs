@@ -29,7 +29,20 @@ function readRows(file) {
   return out;
 }
 
-const rows = [...readRows('src/nutrition/foods.ts'), ...readRows('src/nutrition/world.ts')];
+// Things that are in a food photo but are not food. Tiles that match these are ignored when splitting a plate into items.
+const BACKGROUND = [
+  { id: 'bg_plate', name: 'an empty plate' },
+  { id: 'bg_table', name: 'a wooden table' },
+  { id: 'bg_cloth', name: 'a tablecloth or napkin' },
+  { id: 'bg_cutlery', name: 'a fork and knife' },
+  { id: 'bg_hand', name: 'a person holding a phone' },
+  { id: 'bg_bowl', name: 'an empty bowl' },
+  { id: 'bg_cup', name: 'a drinking glass' },
+  { id: 'bg_dark', name: 'a dark background' },
+  { id: 'bg_wall', name: 'a wall' },
+  { id: 'bg_pattern', name: 'a decorated ceramic plate edge' },
+];
+const rows = [...readRows('src/nutrition/foods.ts'), ...readRows('src/nutrition/world.ts'), ...BACKGROUND];
 const seen = new Set();
 for (const r of rows) {
   if (seen.has(r.id)) throw new Error(`duplicate food id: ${r.id}`);
@@ -41,7 +54,7 @@ const MODEL = 'Xenova/clip-vit-base-patch32';
 const tokenizer = await AutoTokenizer.from_pretrained(MODEL);
 const textModel = await CLIPTextModelWithProjection.from_pretrained(MODEL, { dtype: 'q8' });
 
-const TEMPLATES = (n) => [`a photo of ${n}, a type of food.`, `a close-up photo of ${n}.`, `a plate of ${n}.`];
+const TEMPLATES = (n, bg) => (bg ? [`a photo of ${n}.`, `a close-up photo of ${n}.`] : [`a photo of ${n}, a type of food.`, `a close-up photo of ${n}.`, `a plate of ${n}.`]);
 const DIM = 512;
 const out = new Float32Array(rows.length * DIM);
 
@@ -54,7 +67,7 @@ const norm = (v) => {
 
 for (let i = 0; i < rows.length; i++) {
   const name = rows[i].name.toLowerCase();
-  const inputs = tokenizer(TEMPLATES(name), { padding: true, truncation: true });
+  const inputs = tokenizer(TEMPLATES(name, rows[i].id.startsWith('bg_')), { padding: true, truncation: true });
   const { text_embeds } = await textModel(inputs);
   const acc = new Float32Array(DIM);
   const n = text_embeds.dims[0];

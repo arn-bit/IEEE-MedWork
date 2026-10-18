@@ -1,4 +1,4 @@
-import type { MealEntry } from '../nutrition/foods';
+import type { Food, FoodExample, MealEntry } from '../nutrition/foods';
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import { generatePlan } from '../domain/plan/engine';
 import { emptyHealth } from '../domain/profile';
@@ -24,6 +24,8 @@ type Action =
   | { type: 'removeActivity'; id: string }
   | { type: 'addMeal'; entry: MealEntry }
   | { type: 'removeMeal'; id: string }
+  | { type: 'teachFood'; food: Food | null; example: FoodExample }
+  | { type: 'forgetFood'; foodId: string }
   | { type: 'spendTokens'; game: string; cost: number; at: string }
   | { type: 'replaceAll'; data: AppData }
   | { type: 'reset' };
@@ -65,6 +67,12 @@ function reducer(state: AppData, a: Action): AppData {
       return { ...state, activities: state.activities.filter((x) => x.id !== a.id) };
     case 'addMeal':
       return { ...state, meals: [...state.meals.slice(-1999), a.entry] };
+    case 'teachFood': {
+      const userFoods = a.food && !state.userFoods.some((f) => f.id === a.food!.id) ? [...state.userFoods, a.food] : state.userFoods;
+      return { ...state, userFoods: userFoods.slice(-300), foodExamples: [...state.foodExamples, a.example].slice(-400) };
+    }
+    case 'forgetFood':
+      return { ...state, userFoods: state.userFoods.filter((f) => f.id !== a.foodId), foodExamples: state.foodExamples.filter((e) => e.foodId !== a.foodId) };
     case 'removeMeal':
       return { ...state, meals: state.meals.filter((m) => m.id !== a.id) };
     case 'spendTokens': {
@@ -105,6 +113,10 @@ interface StoreValue {
   removeActivity(id: string): void;
   addMeal(entry: MealEntry): void;
   removeMeal(id: string): void;
+  /** Save a labelled photo fingerprint. Pass `food` when it is a brand-new food you are adding. */
+  teachFood(food: Food | null, example: FoodExample): void;
+  /** Forget everything you taught the app about one food. */
+  forgetFood(foodId: string): void;
   deleteEverything(): Promise<void>;
 }
 
@@ -199,6 +211,8 @@ export function StoreProvider({
     removeActivity: (id) => dispatch({ type: 'removeActivity', id }),
     addMeal: (entry) => dispatch({ type: 'addMeal', entry }),
     removeMeal: (id) => dispatch({ type: 'removeMeal', id }),
+    teachFood: (food, example) => dispatch({ type: 'teachFood', food, example }),
+    forgetFood: (foodId) => dispatch({ type: 'forgetFood', foodId }),
     deleteEverything: async () => {
       await deleteAllData();
       skipSave.current = true; // don't immediately re-write defaults

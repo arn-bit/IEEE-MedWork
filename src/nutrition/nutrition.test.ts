@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_FOODS, EXTRA_FOODS, FOODS, foodById, scaleFood, sumMeals, type MealEntry } from './foods';
 import { WORLD_FOODS } from './world';
-import { clipProbabilities, mergeGuesses, softmax, topGuesses, toTensorData } from './recognize';
+import { clipProbabilities, decodeExamples, decodeVector, encodeVector, exampleScores, mergeGuesses, normalize, planPlate, servingsFor, softmax, tileRects, topGuesses, toTensorData } from './recognize';
 
 describe('food table', () => {
   it('has the 101 Food-101 classes, in the alphabetical order the model outputs', () => {
@@ -129,5 +129,92 @@ describe('world foods and merging the two models', () => {
     dish[0] = 0.7;
     expect(mergeGuesses([], null, dish)[0]!.id).toBe('apple_pie');
     expect(mergeGuesses(ids, [0.1, 0.1, 0.7, 0.1], null)[0]!.id).toBe('almonds');
+  });
+});
+
+describe('plates with several foods and learning from labels', () => {
+  const ids = ['fried_rice', 'roast_chicken', 'grilled_vegetables', 'bg_plate', 'u_mom_curry'];
+  const DIM = 512;
+  const vec = (seed: number) => {
+    const v = new Float32Array(DIM);
+    for (let k = 0; k < DIM; k++) v[k] = Math.sin(seed * 31.7 + k * 0.37);
+    return normalize(v);
+  };
+  /** probabilities over `ids` with the given mass on one label and the rest spread out */
+  const probsOn = (id: string, p: number) => {
+    const out = new Array(ids.length).fill((1 - p) / (ids.length - 1));
+    out[ids.indexOf(id)] = p;
+    return out;
+  };
+
+  it('a confident single dish is not split into pieces', () => {
+    const items = planPlate({ ids, global: { probs: probsOn('fried_rice', 0.8), emb: vec(1), dish: null }, tiles: [{ probs: probsOn('roast_chicken', 0.9), emb: vec(2) }, { probs: probsOn('roast_chicken', 0.9), emb: vec(3) }] });
+    expect(items).toHaveLength(1);
+    expect(items[0]!.foodId).toBe('fried_rice');
+    expect(items[0]!.servings).toBe(1);
+  });
+
+  it('an unsure photo is read in tiles: foods that win several tiles become items, with amounts from coverage', () => {
+    const tiles = [
+      { probs: probsOn('fried_rice', 0.5), emb: vec(10) },
+      { probs: probsOn('fried_rice', 0.5), emb: vec(11) },
+      { probs: probsOn('fried_rice', 0.5), emb: vec(12) },
+      { probs: probsOn('roast_chicken', 0.5), emb: vec(13) },
+      { probs: probsOn('roast_chicken', 0.5), emb: vec(14) },
+      { probs: probsOn('bg_plate', 0.9), emb: vec(15) },
+    ];
+    const items = planPlate({ ids, global: { probs: probsOn('fried_rice', 0.3), emb: vec(1), dish: null }, tiles });
+    expect(items.map((i) => i.foodId)).toEqual(['fried_rice', 'roast_chicken']);
+    expect(items[0]!.share).toBeGreaterThan(items[1]!.share);
+    expect(items[0]!.servings).toBeGreaterThan(items[1]!.servings);
+    expect(items[0]!.servings).toBeLessThan(1.01);
+    for (const i of items) expect(i.embedding).toHaveLength(DIM);
+  });
+
+  it('background-only tiles never become food', () => {
+    const tiles = Array.from({ length: 6 }, (_, i) => ({ probs: probsOn('bg_plate', 0.9), emb: vec(20 + i) }));
+    const items = planPlate({ ids, global: { probs: probsOn('grilled_vegetables', 0.4), emb: vec(1), dish: null }, tiles });
+    expect(items.map((i) => i.foodId)).toEqual(['grilled_vegetables']);
+  });
+
+  it('lone amounts: one food is one serving, foods sharing a plate get less, never beyond sane bounds', () => {
+    expect(servingsFor(1)).toBe(1);
+    expect(servingsFor(0.5)).toBeCloseTo(0.65, 5);
+    expect(servingsFor(0)).toBeGreaterThanOrEqual(0.3);
+    expect(servingsFor(5)).toBeLessThanOrEqual(1.2);
+  });
+
+  it('fingerprints survive saving (quantised base64) with almost no loss', () => {
+    const v = vec(7);
+    const back = decodeVector(encodeVector(v));
+    let cos = 0;
+    for (let k = 0; k < DIM; k++) cos += v[k]! * back[k]!;
+    expect(cos).toBeGreaterThan(0.995);
+    expect(encodeVector(v).length).toBeLessThan(800);
+  });
+
+  it('a photo you labelled is recognised next time, even for a food the models do not know', () => {
+    const emb = vec(40);
+    const taught = decodeExamples([{ id: 'e1', foodId: 'u_mom_curry', v: encodeVector(emb) }]);
+    expect(exampleScores(emb, taught).get('u_mom_curry')!).toBeGreaterThan(0.9);
+    expect(exampleScores(vec(99), taught).get('u_mom_curry') ?? 0).toBeLessThan(0.2);
+    const mine = { id: 'u_mom_curry', name: 'Mom’s curry', grams: 100, serving: '1 bowl', kcal: 450, protein: 20, carbs: 40, fat: 20 };
+    const items = planPlate({ ids, global: { probs: probsOn('roast_chicken', 0.3), emb, dish: null }, tiles: [], examples: taught, userFoods: [mine] });
+    expect(items[0]!.foodId).toBe('u_mom_curry');
+    expect(items[0]!.name).toBe('Mom’s curry');
+  });
+
+  it('the tile grid covers the picture with at most 12 square tiles', () => {
+    for (const [w, h] of [[720, 480], [1200, 1200], [4000, 3000], [480, 960]] as const) {
+      const r = tileRects(w, h);
+      expect(r.length).toBeGreaterThanOrEqual(4);
+      expect(r.length).toBeLessThanOrEqual(12);
+      for (const t of r) {
+        expect(t.x).toBeGreaterThanOrEqual(0);
+        expect(t.y).toBeGreaterThanOrEqual(0);
+        expect(t.x + t.side).toBeLessThanOrEqual(w + 1);
+        expect(t.y + t.side).toBeLessThanOrEqual(h + 1);
+      }
+    }
   });
 });

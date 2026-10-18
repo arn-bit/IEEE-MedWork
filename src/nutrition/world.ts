@@ -182,6 +182,20 @@ const ROWS: Row[] = [
   ['orange_juice', 'Orange juice', 248, '1 glass', 112, 1.7, 26, 0.5],
   ['soda', 'Fizzy drink', 355, '1 can', 140, 0, 39, 0],
 
+  // Plate components: foods that usually share a plate with something else
+  ['grilled_vegetables', 'Grilled vegetables', 150, '1 side', 90, 3, 12, 4],
+  ['roasted_potatoes', 'Roasted potatoes', 170, '1 side', 200, 4, 33, 6],
+  ['steamed_vegetables', 'Steamed vegetables', 150, '1 side', 55, 3, 11, 0.5],
+  ['grilled_chicken', 'Grilled chicken', 120, '1 piece', 190, 33, 0, 6],
+  ['sausage', 'Sausage', 70, '1 link', 220, 9, 2, 19],
+  ['baked_beans', 'Baked beans', 130, '½ cup', 120, 6, 24, 0.5],
+  ['plain_noodles', 'Noodles', 160, '1 cup cooked', 220, 8, 43, 1.3],
+  ['fruit_salad', 'Fruit salad', 150, '1 cup', 90, 1, 23, 0.3],
+  ['fried_egg', 'Fried egg', 46, '1 egg', 90, 6, 0.4, 7],
+  ['fish_fillet', 'Fish fillet', 140, '1 fillet', 210, 30, 0, 9],
+  ['coleslaw', 'Coleslaw', 100, '½ cup', 150, 1, 12, 11],
+  ['stir_fried_vegetables', 'Stir-fried vegetables', 150, '1 side', 100, 3, 12, 5],
+
   // More fruit, vegetables and staples
   ['watermelon', 'Watermelon', 150, '1 cup', 46, 0.9, 11.5, 0.2],
   ['mango', 'Mango', 165, '1 cup', 99, 1.4, 25, 0.6],
