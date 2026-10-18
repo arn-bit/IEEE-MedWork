@@ -128,7 +128,7 @@ export function NutritionPage() {
         </div>
         <input ref={camRef} type="file" accept="image/*" capture="environment" className="visually-hidden" aria-label="Take a photo of your meal" onChange={(e) => { void analyse(e.target.files?.[0]); e.target.value = ''; }} />
         <input ref={fileRef} type="file" accept="image/*" className="visually-hidden" aria-label="Choose a photo of your meal" onChange={(e) => { void analyse(e.target.files?.[0]); e.target.value = ''; }} />
-        <p className="tiny muted">The first scan loads two small food models (about 30 MB in total) from this app, not the internet. It knows 101 common dishes plus about 25 whole foods like fruit and vegetables, so unusual meals may need a manual pick.</p>
+        <p className="tiny muted">The first scan loads two food models (about 80 MB in total, once) from this app, not the internet. It knows over 300 foods, including nuts, fruit, vegetables and dishes from many cuisines, so unusual meals may still need a manual pick.</p>
 
         {phase.name === 'loading' ? (
           <div className="nut-loading" role="status">
@@ -370,7 +370,7 @@ export function NutritionPage() {
           </span>
         </label>
         <p className="tiny muted">
-          Dishes are recognised by an EfficientNet-B0 trained on the Food-101 dataset (MIT license, about 84% top-1 accuracy on its own test set, as reported by its author). Fruit, vegetables and a few other whole foods are recognised by MobileNetV2 trained on ImageNet (Apache-2.0). Both run with ONNX Runtime Web (MIT). It recognises 101 dishes and around 25 whole foods, and can’t tell portion
+          Dishes are recognised by an EfficientNet-B0 trained on the Food-101 dataset (MIT license, about 84% top-1 accuracy on its own test set, as reported by its author). Over 300 other foods (nuts, fruit, vegetables and dishes from many cuisines) are recognised by OpenAI’s CLIP image model (MIT). Both run with ONNX Runtime Web (MIT). It recognises over 300 foods, and can’t tell portion
           size, ingredients or hidden oils, so treat every number as a starting point.
         </p>
       </section>

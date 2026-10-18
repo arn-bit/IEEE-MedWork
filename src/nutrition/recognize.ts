@@ -1,19 +1,30 @@
 import { FOODS, foodById } from './foods';
 
 /**
- * On-device food recognition. A small image classifier (EfficientNet-B0 trained on Food-101) runs in
- * this browser with ONNX Runtime Web. The photo is read into memory, resized to 224x224 and
- * discarded; nothing is uploaded and the picture is never stored.
+ * On-device food recognition, entirely in this browser with ONNX Runtime Web. The photo is read into
+ * memory, resized and discarded; nothing is uploaded and the picture is never stored.
+ *
+ * Two models give two opinions:
+ *  - CLIP (OpenAI, MIT) matches the photo against the names of 300+ foods from many cuisines, nuts,
+ *    fruit and vegetables. The name vectors are precomputed (scripts/build-food-labels.mjs), so only
+ *    CLIP's image half ships.
+ *  - An EfficientNet-B0 trained on Food-101 is very good at 101 common dishes.
  */
 
 export const FOOD_MODEL = {
-  url: '/models/food/efficientnet_b0_food101.onnx',
-  /** A general ImageNet classifier, used for whole foods (banana, apple, broccoli...) that Food-101 doesn't cover. */
-  wholeUrl: '/models/food/mobilenet_v2_imagenet.onnx',
+  dishUrl: '/models/food/efficientnet_b0_food101.onnx',
+  clipUrl: '/models/food/clip_vit_b32_vision_q4.onnx',
+  clipLabelsUrl: '/models/food/clip_labels.json',
+  clipTextUrl: '/models/food/clip_text.bin',
   size: 224,
-  mean: [0.485, 0.456, 0.406],
-  std: [0.229, 0.224, 0.225],
+  dish: { mean: [0.485, 0.456, 0.406], std: [0.229, 0.224, 0.225], crop: 224 / 256 },
+  clip: { mean: [0.48145466, 0.4578275, 0.40821073], std: [0.26862954, 0.26130258, 0.27577711], crop: 1 },
+  clipDim: 512,
+  /** CLIP's learned temperature: similarity x 100 before softmax. */
+  clipScale: 100,
 } as const;
+
+type Norm = { mean: readonly number[]; std: readonly number[]; crop: number };
 
 export interface Guess {
   index: number;
@@ -31,74 +42,6 @@ export function softmax(logits: ArrayLike<number>): number[] {
   return ex.map((x) => x / sum);
 }
 
-/**
- * ImageNet class index -> food id. Only foods are listed. Entries marked with an array also suggest
- * a second, commonly confused food (ImageNet has no plain red apple, so it often says pomegranate).
- */
-export const IMAGENET_FOODS: Record<number, string | [string, string]> = {
-  924: 'guacamole',
-  928: 'ice_cream',
-  930: 'baguette',
-  931: 'bagel',
-  932: 'pretzel',
-  933: 'hamburger', // "cheeseburger"
-  935: 'mashed_potato',
-  936: 'cabbage',
-  937: 'broccoli',
-  938: 'cauliflower',
-  939: 'zucchini',
-  940: 'squash',
-  941: 'squash',
-  942: 'squash',
-  943: 'cucumber',
-  944: 'artichoke',
-  945: 'bell_pepper',
-  947: 'mushroom',
-  948: 'apple', // "Granny Smith"
-  949: 'strawberries',
-  950: 'orange',
-  952: 'fig',
-  953: 'pineapple',
-  954: 'banana',
-  957: ['pomegranate', 'apple'],
-  959: 'spaghetti_carbonara',
-  963: 'pizza',
-  987: 'corn',
-};
-
-/** Food ids that are plain whole foods (not Food-101 dishes). */
-const WHOLE_IDS = new Set(['guacamole', 'ice_cream', 'hamburger', 'spaghetti_carbonara', 'pizza']);
-
-/**
- * Combine the dish model (Food-101) with the whole-food model (ImageNet).
- * A dish model always names SOME dish, even for a banana, so when the whole-food model is sure it's
- * a whole food, the dish model's guess is scaled down by how sure that is.
- */
-export function mergeGuesses(dishProbs: ArrayLike<number>, imageNetProbs: ArrayLike<number> | null, k = 5): Guess[] {
-  const score = new Map<string, number>();
-  let wholeMass = 0;
-  if (imageNetProbs) {
-    for (const [idx, target] of Object.entries(IMAGENET_FOODS)) {
-      const q = imageNetProbs[Number(idx)] ?? 0;
-      const [main, alt] = Array.isArray(target) ? target : [target, null];
-      if (!WHOLE_IDS.has(main)) wholeMass += q;
-      score.set(main, Math.max(score.get(main) ?? 0, q));
-      if (alt) score.set(alt, Math.max(score.get(alt) ?? 0, q * 0.6));
-    }
-  }
-  const damp = 1 - Math.min(1, wholeMass);
-  for (let i = 0; i < dishProbs.length; i++) {
-    const id = FOODS[i]?.id;
-    if (!id) continue;
-    const p = dishProbs[i]! * (wholeMass > 0.5 ? damp : 1);
-    score.set(id, Math.max(score.get(id) ?? 0, p));
-  }
-  return [...score.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, k)
-    .map(([id, p]) => ({ index: FOODS.findIndex((f) => f.id === id), id, name: foodById(id)?.name ?? id, p }));
-}
-
 export function topGuesses(probs: ArrayLike<number>, k = 5): Guess[] {
   return Array.from({ length: probs.length }, (_, i) => i)
     .sort((a, b) => probs[b]! - probs[a]!)
@@ -106,16 +49,63 @@ export function topGuesses(probs: ArrayLike<number>, k = 5): Guess[] {
     .map((i) => ({ index: i, id: FOODS[i]?.id ?? `class_${i}`, name: FOODS[i]?.name ?? `Class ${i}`, p: probs[i]! }));
 }
 
-/** Resize the shorter side to 256 and centre-crop 224 (the standard evaluation transform), then normalise to NCHW floats. */
-export function toTensorData(rgba: Uint8ClampedArray, size: number = FOOD_MODEL.size): Float32Array {
+/** RGBA pixels -> normalised NCHW floats. */
+export function toTensorData(rgba: Uint8ClampedArray, size: number = FOOD_MODEL.size, norm: Pick<Norm, 'mean' | 'std'> = FOOD_MODEL.dish): Float32Array {
   const out = new Float32Array(3 * size * size);
   const plane = size * size;
   for (let i = 0; i < plane; i++) {
     for (let c = 0; c < 3; c++) {
-      out[c * plane + i] = (rgba[i * 4 + c]! / 255 - FOOD_MODEL.mean[c]!) / FOOD_MODEL.std[c]!;
+      out[c * plane + i] = (rgba[i * 4 + c]! / 255 - norm.mean[c]!) / norm.std[c]!;
     }
   }
   return out;
+}
+
+/** Cosine similarity of an image vector against each row of a [n x dim] matrix of unit vectors, as softmax probabilities. */
+export function clipProbabilities(image: ArrayLike<number>, text: Float32Array, dim: number = FOOD_MODEL.clipDim, scale: number = FOOD_MODEL.clipScale): number[] {
+  let nrm = 0;
+  for (let k = 0; k < dim; k++) nrm += image[k]! * image[k]!;
+  nrm = Math.sqrt(nrm) || 1;
+  const n = text.length / dim;
+  const logits = new Array<number>(n);
+  for (let i = 0; i < n; i++) {
+    let d = 0;
+    for (let k = 0; k < dim; k++) d += (image[k]! / nrm) * text[i * dim + k]!;
+    logits[i] = d * scale;
+  }
+  return softmax(logits);
+}
+
+/**
+ * Combine CLIP (all foods) with the Food-101 dish model.
+ * The dish model always names SOME dish, even for a banana, so its vote is scaled by how much of CLIP's
+ * probability sits on those 101 dishes. A food outside the 101 is scored by CLIP alone.
+ */
+export function mergeGuesses(clipIds: readonly string[], clipProbs: ArrayLike<number> | null, dishProbs: ArrayLike<number> | null, k = 5): Guess[] {
+  const dishIndex = new Map(FOODS.map((f, i) => [f.id, i]));
+  const score = new Map<string, number>();
+
+  let dishMass = 0;
+  if (clipProbs) for (let i = 0; i < clipIds.length; i++) if (dishIndex.has(clipIds[i]!)) dishMass += clipProbs[i]!;
+
+  if (clipProbs) {
+    for (let i = 0; i < clipIds.length; i++) {
+      const id = clipIds[i]!;
+      const c = clipProbs[i]!;
+      const di = dishIndex.get(id);
+      const d = di !== undefined && dishProbs ? dishProbs[di]! : 0;
+      // With both opinions available, dishes are an even blend; otherwise whichever one exists.
+      const s = di !== undefined && dishProbs ? 0.5 * c + 0.5 * dishMass * d : c;
+      score.set(id, s);
+    }
+  } else if (dishProbs) {
+    for (let i = 0; i < FOODS.length; i++) score.set(FOODS[i]!.id, dishProbs[i]!);
+  }
+
+  return [...score.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, k)
+    .map(([id, p]) => ({ index: dishIndex.get(id) ?? -1, id, name: foodById(id)?.name ?? id, p }));
 }
 
 async function loadBitmap(file: Blob): Promise<ImageBitmap> {
@@ -126,19 +116,19 @@ async function loadBitmap(file: Blob): Promise<ImageBitmap> {
   }
 }
 
-async function pixelsFrom(file: Blob): Promise<Uint8ClampedArray> {
-  const bmp = await loadBitmap(file);
+/** Centre-crop and scale a picture to size x size RGBA pixels. `crop` is the fraction of the shorter side kept. */
+function pixelsFrom(bmp: ImageBitmap, crop: number): Uint8ClampedArray {
   const s = FOOD_MODEL.size;
   const canvas = document.createElement('canvas');
   canvas.width = s;
   canvas.height = s;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('Canvas is not available in this browser.');
-  const side = Math.min(bmp.width, bmp.height) * (s / 256); // centre crop of the 256-resized image
+  ctx.imageSmoothingQuality = 'high';
+  const side = Math.min(bmp.width, bmp.height) * crop;
   const sx = (bmp.width - side) / 2;
   const sy = (bmp.height - side) / 2;
   ctx.drawImage(bmp, sx, sy, side, side, 0, 0, s, s);
-  bmp.close();
   return ctx.getImageData(0, 0, s, s).data;
 }
 
@@ -176,22 +166,60 @@ function loadSession(url: string): Promise<Session> {
   return p;
 }
 
-async function logitsFor(url: string, pixels: Uint8ClampedArray): Promise<Float32Array> {
+async function run(url: string, pixels: Uint8ClampedArray, norm: Norm): Promise<Float32Array> {
   const [ort, session] = await Promise.all([loadOrt(), loadSession(url)]);
-  const input = new ort.Tensor('float32', toTensorData(pixels), [1, 3, FOOD_MODEL.size, FOOD_MODEL.size]);
+  const input = new ort.Tensor('float32', toTensorData(pixels, FOOD_MODEL.size, norm), [1, 3, FOOD_MODEL.size, FOOD_MODEL.size]);
   const out = await session.run({ [session.inputNames[0]!]: input });
   return out[session.outputNames[0]!]!.data as Float32Array;
 }
 
-export async function recognizeFood(file: Blob): Promise<Guess[]> {
-  const pixels = await pixelsFrom(file);
-  const dish = softmax(await logitsFor(FOOD_MODEL.url, pixels));
-  // The whole-food model is an extra: if it fails to load, dishes still work.
-  let whole: number[] | null;
-  try {
-    whole = softmax(await logitsFor(FOOD_MODEL.wholeUrl, pixels));
-  } catch {
-    whole = null;
+interface ClipLabels {
+  ids: string[];
+  text: Float32Array;
+}
+let clipLabels: Promise<ClipLabels> | null = null;
+function loadClipLabels(): Promise<ClipLabels> {
+  if (!clipLabels) {
+    clipLabels = (async () => {
+      const [idsRes, textRes] = await Promise.all([fetch(FOOD_MODEL.clipLabelsUrl), fetch(FOOD_MODEL.clipTextUrl)]);
+      if (!idsRes.ok || !textRes.ok) throw new Error('The food label data is missing from this app build.');
+      const ids = (await idsRes.json()) as string[];
+      const text = new Float32Array(await textRes.arrayBuffer());
+      if (text.length !== ids.length * FOOD_MODEL.clipDim) throw new Error('The food label data does not match.');
+      return { ids, text };
+    })().catch((e) => {
+      clipLabels = null;
+      throw e;
+    });
   }
-  return mergeGuesses(dish, whole, 5);
+  return clipLabels;
+}
+
+export async function recognizeFood(file: Blob): Promise<Guess[]> {
+  const bmp = await loadBitmap(file);
+  try {
+    const dishPx = pixelsFrom(bmp, FOOD_MODEL.dish.crop);
+    const clipPx = pixelsFrom(bmp, FOOD_MODEL.clip.crop);
+
+    // Each model is an extra opinion: if one fails to load, the other still works.
+    let dish: number[] | null;
+    try {
+      dish = softmax(await run(FOOD_MODEL.dishUrl, dishPx, FOOD_MODEL.dish));
+    } catch {
+      dish = null;
+    }
+    let clip: number[] | null;
+    let ids: string[] = [];
+    try {
+      const labels = await loadClipLabels();
+      ids = labels.ids;
+      clip = clipProbabilities(await run(FOOD_MODEL.clipUrl, clipPx, FOOD_MODEL.clip), labels.text);
+    } catch {
+      clip = null;
+    }
+    if (!dish && !clip) throw new Error('The food recognition models could not be loaded.');
+    return mergeGuesses(ids, clip, dish, 5);
+  } finally {
+    bmp.close();
+  }
 }

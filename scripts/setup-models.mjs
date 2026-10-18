@@ -44,13 +44,13 @@ const FOODS = [{
   // Pinned: the download is refused unless it matches this SHA-256.
   sha256: 'a19fedaec8bb25ca7af8d49a71aaf2d5f71588bd96d859c252fd1e4902345179',
 }, {
-  file: 'mobilenet_v2_imagenet.onnx',
-  url: 'https://github.com/onnx/models/raw/main/validated/vision/classification/mobilenet/model/mobilenetv2-12.onnx',
-  name: 'MobileNetV2 (ImageNet, ONNX Model Zoo mobilenetv2-12): used for whole foods like fruit and vegetables',
-  license: 'Apache-2.0 (ONNX Model Zoo)',
-  modelCard: 'https://github.com/onnx/models/tree/main/validated/vision/classification/mobilenet',
-  bytes: 13964571,
-  sha256: 'c0c3f76d93fa3fd6580652a45618618a220fced18babf65774ed169de0432ad5',
+  file: 'clip_vit_b32_vision_q4.onnx',
+  url: 'https://huggingface.co/Xenova/clip-vit-base-patch32/resolve/main/onnx/vision_model_q4.onnx',
+  name: 'OpenAI CLIP ViT-B/32 image encoder, 4-bit weights (ONNX conversion by Xenova)',
+  license: 'MIT (OpenAI CLIP)',
+  modelCard: 'https://huggingface.co/Xenova/clip-vit-base-patch32',
+  bytes: 63642858,
+  sha256: '0769eb1d2f6f68927bbfa6e5330df4c4c3c112f89cd43eae28baafa9e6bd34b4',
 }];
 const ortPkgDir = join(root, 'node_modules', 'onnxruntime-web', 'dist');
 const ortOutDir = join(root, 'public', 'ort');

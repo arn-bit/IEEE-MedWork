@@ -1,3 +1,5 @@
+import { WORLD_FOODS } from './world';
+
 /**
  * Typical nutrition for the 101 dishes the on-device classifier knows (the Food-101 classes).
  *
@@ -172,7 +174,7 @@ const EXTRA_ROWS: Row[] = [
 ];
 
 export const EXTRA_FOODS: readonly Food[] = EXTRA_ROWS.map(([id, name, grams, serving, kcal, protein, carbs, fat]) => ({ id, name, grams, serving, kcal, protein, carbs, fat }));
-export const ALL_FOODS: readonly Food[] = [...FOODS, ...EXTRA_FOODS];
+export const ALL_FOODS: readonly Food[] = [...FOODS, ...EXTRA_FOODS, ...WORLD_FOODS];
 
 export function foodByIndex(i: number): Food | undefined {
   return FOODS[i];

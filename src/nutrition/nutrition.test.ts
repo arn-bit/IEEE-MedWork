@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_FOODS, EXTRA_FOODS, FOODS, foodById, scaleFood, sumMeals, type MealEntry } from './foods';
-import { IMAGENET_FOODS, mergeGuesses, softmax, topGuesses, toTensorData } from './recognize';
+import { WORLD_FOODS } from './world';
+import { clipProbabilities, mergeGuesses, softmax, topGuesses, toTensorData } from './recognize';
 
 describe('food table', () => {
   it('has the 101 Food-101 classes, in the alphabetical order the model outputs', () => {
@@ -70,61 +71,63 @@ describe('recognition maths', () => {
   });
 });
 
-describe('whole foods and merging the two models', () => {
-  it('extra foods have unique ids that do not clash with dishes, and plausible macros', () => {
+describe('world foods and merging the two models', () => {
+  it('extra and world foods have unique ids and plausible macros', () => {
     const ids = ALL_FOODS.map((f) => f.id);
     expect(new Set(ids).size).toBe(ids.length);
-    for (const f of EXTRA_FOODS) {
+    expect(ALL_FOODS.length).toBeGreaterThan(250);
+    for (const f of [...EXTRA_FOODS, ...WORLD_FOODS]) {
       const est = f.protein * 4 + f.carbs * 4 + f.fat * 9;
       expect(Math.abs(est - f.kcal), `${f.id}: ${est} vs ${f.kcal}`).toBeLessThanOrEqual(Math.max(f.kcal * 0.3, 15));
     }
   });
 
-  it('every ImageNet food mapping points at a real food', () => {
-    for (const target of Object.values(IMAGENET_FOODS)) {
-      for (const id of Array.isArray(target) ? target : [target]) expect(foodById(id), id).toBeDefined();
+  it('covers nuts and a range of cuisines', () => {
+    for (const id of ['almonds', 'cashews', 'walnuts', 'mixed_nuts', 'biryani', 'dosa', 'kimchi', 'tteokbokki', 'pad_see_ew', 'shawarma', 'jollof_rice', 'tacos', 'pierogi']) {
+      expect(foodById(id), id).toBeDefined();
     }
   });
 
+  it('CLIP probabilities pick the matching text vector', () => {
+    const dim = 4;
+    const text = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]);
+    const p = clipProbabilities([0, 5, 0.1, 0], text, dim, 100);
+    expect(p[1]!).toBeGreaterThan(0.99);
+    expect(p.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 6);
+  });
+
+  const ids = ['banana', 'churros', 'almonds', 'lasagna'];
+  const dishIdx = (id: string) => FOODS.findIndex((f) => f.id === id);
+
   it('a confident banana beats the dish model forced guess (churros)', () => {
     const dish = new Array(101).fill(0.001);
-    dish[FOODS.findIndex((f) => f.id === 'churros')] = 0.5;
-    const net = new Array(1000).fill(0);
-    net[954] = 0.99; // banana
-    const g = mergeGuesses(dish, net);
+    dish[dishIdx('churros')] = 0.5;
+    const clip = [0.9, 0.01, 0.05, 0.04];
+    const g = mergeGuesses(ids, clip, dish);
     expect(g[0]!.id).toBe('banana');
-    expect(g.find((x) => x.id === 'churros')!.p).toBeLessThan(0.05);
+    expect(g.find((x) => x.id === 'churros')!.p).toBeLessThan(0.1);
   });
 
-  it('a confident dish is kept when the whole-food model sees nothing', () => {
+  it('a dish both models agree on gets a strong score', () => {
     const dish = new Array(101).fill(0.001);
-    dish[FOODS.findIndex((f) => f.id === 'lasagna')] = 0.8;
-    const net = new Array(1000).fill(0.0001);
-    expect(mergeGuesses(dish, net)[0]!.id).toBe('lasagna');
+    dish[dishIdx('lasagna')] = 0.8;
+    const clip = [0.02, 0.02, 0.02, 0.9];
+    const g = mergeGuesses(ids, clip, dish);
+    expect(g[0]!.id).toBe('lasagna');
+    expect(g[0]!.p).toBeGreaterThan(0.7);
   });
 
-  it('pizza from both models is one entry, not two', () => {
+  it('a non-dish food (almonds) is scored by CLIP alone', () => {
     const dish = new Array(101).fill(0.001);
-    dish[FOODS.findIndex((f) => f.id === 'pizza')] = 0.6;
-    const net = new Array(1000).fill(0);
-    net[963] = 0.8;
-    const g = mergeGuesses(dish, net);
-    expect(g.filter((x) => x.id === 'pizza')).toHaveLength(1);
+    const g = mergeGuesses(ids, [0.05, 0.05, 0.8, 0.1], dish);
+    expect(g[0]!.id).toBe('almonds');
     expect(g[0]!.p).toBeCloseTo(0.8, 5);
   });
 
-  it('pomegranate also suggests apple (ImageNet has no plain red apple)', () => {
-    const dish = new Array(101).fill(0.001);
-    const net = new Array(1000).fill(0);
-    net[957] = 0.6;
-    const ids = mergeGuesses(dish, net).map((x) => x.id);
-    expect(ids).toContain('apple');
-    expect(ids[0]).toBe('pomegranate');
-  });
-
-  it('works if the whole-food model is unavailable', () => {
+  it('falls back to one model if the other is unavailable', () => {
     const dish = new Array(101).fill(0.001);
     dish[0] = 0.7;
-    expect(mergeGuesses(dish, null)[0]!.id).toBe('apple_pie');
+    expect(mergeGuesses([], null, dish)[0]!.id).toBe('apple_pie');
+    expect(mergeGuesses(ids, [0.1, 0.1, 0.7, 0.1], null)[0]!.id).toBe('almonds');
   });
 });
