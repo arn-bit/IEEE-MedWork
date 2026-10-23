@@ -312,3 +312,59 @@ describe('free play from the library', () => {
     expect(buildTrySession(['not_real'], p, c)).toBeNull();
   });
 });
+
+describe('harder strength training', () => {
+  const kit = ['chair', 'wall', 'step', 'mat', 'light_weights', 'resistance_band'] as Profile['equipment'];
+  const strong = makeProfile({ ageYears: 30, goals: ['strength'], experience: 'experienced', activityLevel: 'active', equipment: kit, daysPerWeek: 4, minutesPerSession: 45 });
+  const mainIds = (p: Plan) => allItems(p).filter((i) => i.block === 'main').map((i) => i.exerciseId);
+
+  it('the library has a good set of hard (difficulty 3) strength moves, each with camera counting', () => {
+    const hard = EXERCISES.filter((e) => e.category === 'strength' && e.difficulty === 3);
+    expect(hard.length).toBeGreaterThanOrEqual(8);
+    for (const e of hard) {
+      expect(e.camera.supported, e.id).toBe(true);
+      expect(e.easier, `${e.id} needs an easier option`).toBeTruthy();
+    }
+  });
+
+  it('an experienced person training for strength is given hard moves with heavier-style prescriptions', () => {
+    const plan = okPlan(strong);
+    const hard = allItems(plan).filter((i) => i.block === 'main' && getExercise(i.exerciseId)!.difficulty === 3 && getExercise(i.exerciseId)!.category === 'strength');
+    expect(hard.length).toBeGreaterThanOrEqual(3);
+    for (const h of hard) {
+      expect(h.prescription.restSeconds).toBeGreaterThanOrEqual(90);
+      expect(h.prescription.evidenceIds).toContain('acsm-rt-2009');
+      if (h.prescription.kind === 'reps') {
+        expect(h.prescription.amount).toBeLessThanOrEqual(8);
+        expect(h.prescription.sets).toBeGreaterThanOrEqual(1); // the time budget may trim sets
+      }
+    }
+  });
+
+  it('the plan still respects the time limit with these harder sets', () => {
+    for (const minutes of [20, 30, 45, 60]) {
+      const plan = okPlan({ ...strong, minutesPerSession: minutes });
+      for (const s of sessions(plan)) expect(s.estSeconds).toBeLessThanOrEqual(minutes * 60);
+    }
+  });
+
+  it('beginners and inactive people are not given the hard moves', () => {
+    for (const p of [makeProfile({ goals: ['strength'], experience: 'new', equipment: kit }), makeProfile({ goals: ['strength'], experience: 'experienced', activityLevel: 'inactive', equipment: kit })]) {
+      const hard = mainIds(okPlan(p)).filter((id) => getExercise(id)!.difficulty === 3);
+      expect(hard).toEqual([]);
+    }
+  });
+
+  it('safety still comes first: impact moves are dropped when impact is restricted, and weights for children', () => {
+    const restricted = makeProfile({ ...strong, health: { ...strong.health, clinicianRestrictions: ['avoid_impact'] } });
+    expect(mainIds(okPlan(restricted))).not.toContain('jump_squat');
+    expect(EXERCISES.find((e) => e.id === 'jump_squat')!.minAge).toBeGreaterThanOrEqual(16);
+    expect(EXERCISES.find((e) => e.id === 'goblet_squat')!.usesWeights).toBe(true);
+  });
+
+  it('the person who is not training for strength is not pushed to the hard moves', () => {
+    const hardCount = (p: Plan) => mainIds(p).filter((id) => getExercise(id)!.difficulty === 3 && getExercise(id)!.category === 'strength').length;
+    const balance = makeProfile({ ...strong, goals: ['balance'] });
+    expect(hardCount(okPlan(balance))).toBeLessThan(hardCount(okPlan(strong)));
+  });
+});

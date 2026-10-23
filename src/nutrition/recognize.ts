@@ -476,3 +476,8 @@ export async function fingerprint(file: Blob): Promise<Float32Array> {
     bmp.close();
   }
 }
+
+/** Load both food models ahead of time (used by the demo so the first scan is instant). */
+export async function warmFoodModels(): Promise<void> {
+  await Promise.all([loadSession(FOOD_MODEL.dishUrl), loadSession(FOOD_MODEL.clipUrl), loadClipLabels()]);
+}

@@ -40,6 +40,7 @@ const NAV: { to: string; label: string; short: string; icon: IconName; phone: bo
   { to: '/progress', label: 'Progress', short: 'Progress', icon: 'chart', phone: false },
   { to: '/challenges', label: 'Challenges', short: 'Challenges', icon: 'trophy', phone: false },
   { to: '/profile', label: 'Profile & Health', short: 'Profile', icon: 'user', phone: false },
+  { to: '/demo', label: 'Demo mode', short: 'Demo', icon: 'spark', phone: false },
 ];
 
 function useApplySettings() {

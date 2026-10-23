@@ -44,6 +44,11 @@ const PER_SIDE = new Set([
   'hamstring_stretch_seated',
   'upper_body_twist',
   'sideways_walk',
+  'reverse_lunge',
+  'rear_foot_split_squat',
+  'single_leg_sit_to_stand',
+  'single_leg_bridge',
+  'single_leg_calf_raise',
 ]);
 const DAY_PATTERNS: Record<number, number[]> = {
   1: [0],
@@ -128,6 +133,12 @@ function intensityText(profile: Profile, c: Constraints): string {
   return 'Moderate: about 5–6 out of 10 effort — you can talk, but not sing.';
 }
 
+/** Is this a hard strength move for someone who is training for strength and has the experience for it? */
+function wantsHardStrength(ex: Exercise, profile: Profile, c: Constraints): boolean {
+  const adult = c.ageBand === 'adult';
+  return ex.category === 'strength' && ex.difficulty === 3 && adult && profile.experience === 'experienced' && profile.goals.includes('strength') && profile.activityLevel !== 'inactive';
+}
+
 export function prescribe(ex: Exercise, profile: Profile, c: Constraints, block: PlannedItem['block'], shortSession: boolean): Prescription {
   const perSide = PER_SIDE.has(ex.id);
   const intensity = intensityText(profile, c);
@@ -209,6 +220,37 @@ export function prescribe(ex: Exercise, profile: Profile, c: Constraints, block:
     case 'strength':
     case 'warmup':
     default: {
+      // Training for strength with experience: the harder moves get heavier-style work (fewer reps, more sets, longer rest).
+      if (wantsHardStrength(ex, profile, c)) {
+        if (ex.id === 'deep_wall_sit') {
+          return {
+            kind: 'hold',
+            sets: shortSession ? 2 : 3,
+            amount: 30,
+            perSide: false,
+            restSeconds: 90,
+            secondsPerRep: 0,
+            intensity: 'Hard: you should feel the thighs working. Stop well before pain.',
+            rationale: 'A hard isometric hold for people training for strength. The 30-second duration is a product choice; ACSM guidance covers repetition-based training, so this is an extrapolation.',
+            evidenceIds: ['acsm-rt-2009', 'heuristic-conservative'],
+            evidenceKind: 'product_heuristic',
+          };
+        }
+        const power = ex.id === 'jump_squat';
+        return {
+          kind: 'reps',
+          sets: shortSession ? 2 : 4,
+          amount: power ? 6 : 6,
+          perSide: PER_SIDE.has(ex.id),
+          restSeconds: 120,
+          secondsPerRep: power ? 3 : 5,
+          intensity: 'Hard: about 7–8 out of 10 effort. Leave 1–2 reps in reserve and keep good form.',
+          rationale:
+            'ACSM advises that experienced trainees working for strength use heavier loads, about 6 repetitions, for several sets with 2–3 minutes of rest. For bodyweight moves, the harder variations supply the load, which is an extrapolation.',
+          evidenceIds: ['acsm-rt-2009'],
+          evidenceKind: 'position_stand',
+        };
+      }
       if (ex.id === 'wall_sit') {
         return {
           kind: 'hold',
@@ -360,6 +402,11 @@ function rank(list: Exercise[], profile: Profile, theme: Theme, weekUse: Map<str
     // Match difficulty to experience a little, without hiding easier moves.
     if (profile.experience === 'experienced') s += e.difficulty * 3;
     if (profile.experience === 'new') s -= e.difficulty * 3;
+    // People training for strength get pushed toward the harder moves as they gain experience.
+    if (cat === 'strength' && profile.goals.includes('strength')) {
+      if (profile.experience === 'experienced') s += (e.difficulty - 1) * 14;
+      else if (profile.experience === 'some') s += (e.difficulty - 1) * 5;
+    }
     s -= (weekUse.get(e.id) ?? 0) * 22;
     return s;
   };
