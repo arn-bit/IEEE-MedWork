@@ -145,13 +145,14 @@ export function prescribe(ex: Exercise, profile: Profile, c: Constraints, block:
   const youth = c.ageBand === 'child' || c.ageBand === 'teen';
 
   if (block === 'warmup') {
+    const counted = COUNTED_WARMUPS.has(ex.id);
     return {
-      kind: ex.id === 'shoulder_rolls' ? 'reps' : 'time',
+      kind: counted ? 'reps' : 'time',
       sets: 1,
-      amount: ex.id === 'shoulder_rolls' ? 10 : 60,
+      amount: ex.id === 'shoulder_rolls' ? 10 : counted ? 30 : 60,
       perSide: false,
       restSeconds: 0,
-      secondsPerRep: 3,
+      secondsPerRep: ex.id === 'shoulder_rolls' ? 3 : 2,
       intensity: 'Easy: gradually build from very light to light effort.',
       rationale: 'A gradual warm-up eases you into activity. NHS guidance suggests warming up for at least 6 minutes when time allows.',
       evidenceIds: ['nhs-warmup'],
@@ -441,6 +442,9 @@ function reasonsFor(ex: Exercise, profile: Profile, c: Constraints): string[] {
   return r;
 }
 
+/** Warm-ups the camera counts rep by rep (knee lifts, heel taps, shoulder rolls); they are prescribed as reps. */
+const COUNTED_WARMUPS: ReadonlySet<string> = new Set(['march_in_place', 'seated_march', 'heel_digs', 'shoulder_rolls']);
+
 function pickWarmups(pool: Exercise[], c: Constraints, theme: Theme): Exercise[] {
   const order = c.seatedOnly
     ? ['seated_march', 'shoulder_rolls']
@@ -469,7 +473,7 @@ function buildSession(
   const shortSession = limit < 15 * 60;
   if (budgets.note) notes.push(budgets.note);
 
-  // Warm-up: shoulder rolls get a fixed 10 reps; timed moves share the rest of the budget.
+  // Warm-up: shoulder rolls get a fixed 10 reps; the other moves are counted reps that share the rest of the budget.
   const warmups = pickWarmups(pool, c, theme);
   let used = 0;
   if (warmups.length) {
@@ -479,6 +483,7 @@ function buildSession(
     for (const ex of warmups) {
       const p = prescribe(ex, profile, c, 'warmup', shortSession);
       if (p.kind === 'time') p.amount = Math.max(30, Math.floor((share - TRANSITION_S) / 15) * 15);
+      else if (ex.id !== 'shoulder_rolls') p.amount = Math.max(12, Math.floor((share - TRANSITION_S) / p.secondsPerRep / 2) * 2);
       const est = estimateSeconds(p);
       if (used + est > budgets.warmup + 5) continue;
       items.push({ exerciseId: ex.id, block: 'warmup', prescription: p, estSeconds: est, reasons: ['Gradual warm-up before the main exercises'] });

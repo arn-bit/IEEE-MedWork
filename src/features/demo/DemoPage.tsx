@@ -4,12 +4,13 @@ import { Icon, Wordmark } from '../../components/Icon';
 import { SCENES, TOTAL_MS, formatClock, sceneAt, sceneStart, type SceneId } from './script';
 import { buildDemo } from './data';
 import { analyzePhoto, warmFoodModels, type PlateItem } from '../../nutrition/recognize';
-import { TitleScene } from './scenes/TitleScene';
-import { WordsScene } from './scenes/WordsScene';
-import { PlanScene } from './scenes/PlanScene';
+import { WorkflowsScene } from './scenes/WorkflowsScene';
 import { CameraScene } from './scenes/CameraScene';
-import { RewardsScene } from './scenes/RewardsScene';
 import { FoodScene } from './scenes/FoodScene';
+import { RewardsScene } from './scenes/RewardsScene';
+import { ModelsScene } from './scenes/ModelsScene';
+import { LimitsScene } from './scenes/LimitsScene';
+import { CompareScene } from './scenes/CompareScene';
 import { PrivacyScene } from './scenes/PrivacyScene';
 import './demo.css';
 
@@ -24,7 +25,7 @@ export interface SceneProps {
 }
 
 /**
- * A scripted, one-minute tour of Verimove for presentations. It is self-contained: it uses the app's real
+ * A scripted, 90-second tour of Verimove for presentations. It is self-contained: it uses the app's real
  * engines (health-text analysis, plan generation, rep counting, food recognition) on a sample person, and
  * never reads or writes the visitor's own data.
  */
@@ -52,7 +53,7 @@ export function DemoPage() {
   const { index, elapsed, done } = sceneAt(t);
   const scene = SCENES[index]!;
 
-  // Warm the food models while the title is up, so the nutrition scene is instant.
+  // Warm the food models while the first scene plays, so the nutrition scene is instant.
   useEffect(() => {
     let live = true;
     warmFoodModels().then(
@@ -155,12 +156,13 @@ export function DemoPage() {
 
   const props: SceneProps = { elapsed, playing, demo };
   const body: Record<SceneId, ReactNode> = {
-    title: <TitleScene {...props} models={models} />,
-    words: <WordsScene {...props} />,
-    plan: <PlanScene {...props} />,
-    camera: <CameraScene {...props} />,
-    rewards: <RewardsScene {...props} />,
+    workflows: <WorkflowsScene {...props} />,
+    pose: <CameraScene {...props} />,
     food: <FoodScene {...props} plate={plate} models={models} />,
+    rewards: <RewardsScene {...props} />,
+    models: <ModelsScene {...props} />,
+    limits: <LimitsScene {...props} />,
+    compare: <CompareScene {...props} />,
     privacy: <PrivacyScene {...props} onReplay={start} />,
   };
 
@@ -171,13 +173,13 @@ export function DemoPage() {
           <Wordmark size={30} />
         </Link>
         <div className="demo-clock" aria-live="off">
-          <span className="num">{formatClock(t)}</span> / 1:00{slow ? ' · relaxed pace' : ''}
+          <span className="num">{formatClock(t)}</span> / {formatClock(TOTAL_MS)}{slow ? ' · relaxed pace' : ''}
         </div>
         <div className="demo-actions">
           <button className="demo-btn" onClick={() => setNotes((n) => !n)} aria-pressed={notes} title="Speaker notes (N)">
             Notes
           </button>
-          <button className="demo-btn" onClick={() => setSlow((s) => !s)} aria-pressed={slow} title="Relaxed pace, about 90 seconds (S)">
+          <button className="demo-btn" onClick={() => setSlow((s) => !s)} aria-pressed={slow} title="Relaxed pace, about two and a quarter minutes (S)">
             Slower
           </button>
           <button className="demo-btn" onClick={toggleFullscreen} title="Full screen (F)">
@@ -193,8 +195,8 @@ export function DemoPage() {
         {!started ? (
           <section className="demo-start" aria-labelledby="demo-start-h">
             <span className="demo-eyebrow">Live demo</span>
-            <h1 id="demo-start-h">Verimove in one minute</h1>
-            <p>Seven scenes, 60 seconds. It uses the app’s real engines on a sample person, so nothing here touches your own data.</p>
+            <h1 id="demo-start-h">Verimove live demo</h1>
+            <p>Eight sections, 90 seconds. It uses the app’s real engines on a sample person, so nothing here touches your own data.</p>
             <button className="demo-go" onClick={start} disabled={!ready} aria-describedby="demo-ready-note">
               <Icon name="play" size={22} /> {ready ? 'Start the demo' : 'Preparing on-device AI…'}
             </button>

@@ -193,6 +193,7 @@ export type RepCounterId =
   | 'arm_raise'
   | 'march'
   | 'seated_march'
+  | 'heel_dig'
   | 'shoulder_roll'
   | 'calf_raise'
   | 'side_leg_lift'

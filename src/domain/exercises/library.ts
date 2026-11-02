@@ -1032,10 +1032,10 @@ const RAW_EXERCISES: readonly Exercise[] = [
  * timer only runs while you move). All of them are tuned on simulated landmarks only.
  */
 const CAMERA: Record<string, { counterId: DetectorId; view: 'front' | 'side' | 'front_or_side'; notes: string }> = {
-  march_in_place: { counterId: 'activity_legs', view: 'front', notes: 'Counts time while your legs are moving.' },
-  seated_march: { counterId: 'activity_legs', view: 'front_or_side', notes: 'Counts time while your legs are moving.' },
+  march_in_place: { counterId: 'march', view: 'front', notes: 'Counts each knee lift that rises clearly toward hip height. Low knee lifts may not be counted.' },
+  seated_march: { counterId: 'seated_march', view: 'front_or_side', notes: 'Counts each knee lift. Sit tall with your hips and knees in view.' },
   shoulder_rolls: { counterId: 'shoulder_roll', view: 'front', notes: 'Counts each shoulder lift-and-roll. Face the camera.' },
-  heel_digs: { counterId: 'activity_legs', view: 'front', notes: 'Counts time while your legs are moving.' },
+  heel_digs: { counterId: 'heel_dig', view: 'front_or_side', notes: 'Counts each heel tap, when your toes tip up. Keep both feet in view.' },
   sit_to_stand: { counterId: 'sit_to_stand', view: 'side', notes: 'Best from the side with the chair and your whole body in view. Counts sit → stand → sit cycles.' },
   mini_squat: { counterId: 'squat', view: 'front_or_side', notes: 'Uses a shallow-squat threshold. Face the camera or stand side-on.' },
   bodyweight_squat: { counterId: 'squat', view: 'front_or_side', notes: 'Counts stand → squat → stand cycles. Whole body visible.' },

@@ -42,6 +42,29 @@ export const EXTRA_COUNTERS: Record<Exclude<RepCounterId, 'squat' | 'sit_to_stan
     metricLabel: 'Tracked knee lift',
     setupHint: 'Sit tall facing the camera with your hips and knees in view, then lift one knee at a time.',
   },
+  heel_dig: {
+    id: 'heel_dig',
+    label: 'Heel digs',
+    joints: ['ankle', 'heel', 'toe'],
+    bilateral: true,
+    fullBody: true,
+    view: 'front_or_side',
+    start: 'low',
+    relative: true,
+    baselineMode: 'delta',
+    thresholds: { standard: { enter: 0.08, exit: 0.03 }, reduced: { enter: 0.05, exit: 0.02 } },
+    minRepMs: 350,
+    needs: [29, 30, 31, 32],
+    // Toes tip up above the heel while the heel taps forward, measured in torso lengths.
+    metric: (f, s) => {
+      const t = T(f);
+      if (t < 1e-3) return null;
+      const j = SIDES[s];
+      return (f[j.heel]!.y - f[j.toe]!.y) / t;
+    },
+    metricLabel: 'Tracked toe lift',
+    setupHint: 'Stand facing the camera or side-on with your whole body and both feet in view, then tap one heel forward at a time.',
+  },
   shoulder_roll: {
     id: 'shoulder_roll',
     label: 'Shoulder rolls',

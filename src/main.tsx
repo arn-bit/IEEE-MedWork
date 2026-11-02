@@ -9,6 +9,7 @@ import '@fontsource-variable/fraunces/wght.css';
 import './styles/app.css';
 
 const DemoPage = lazy(() => import('./features/demo/DemoPage').then((m) => ({ default: m.DemoPage })));
+const PosterPage = lazy(() => import('./features/poster/PosterPage').then((m) => ({ default: m.PosterPage })));
 
 /** The presentation demo is self-contained: it runs on sample data and never touches the app's own data, even if it is locked. */
 function Root() {
@@ -17,6 +18,13 @@ function Root() {
     return (
       <Suspense fallback={<p style={{ padding: 24 }}>Loading the demo…</p>}>
         <DemoPage />
+      </Suspense>
+    );
+  }
+  if (pathname === '/poster') {
+    return (
+      <Suspense fallback={<p style={{ padding: 24 }}>Loading the poster…</p>}>
+        <PosterPage />
       </Suspense>
     );
   }

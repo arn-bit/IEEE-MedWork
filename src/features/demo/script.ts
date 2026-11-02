@@ -1,9 +1,11 @@
 /**
- * The one-minute demo, as data. Every scene has a fixed duration so the whole thing runs in exactly
- * 60 seconds at normal speed, and every scene has speaker notes for the presenter.
+ * The live demo, as data. The scenes follow the order of the presentation: workflows, pose tracking,
+ * nutrition, gamification, the AI models, limits and references, comparison, privacy. Every scene has a
+ * fixed duration so the whole thing runs in exactly 90 seconds at normal speed, and every scene has
+ * speaker notes for the presenter.
  */
 
-export type SceneId = 'title' | 'words' | 'plan' | 'camera' | 'rewards' | 'food' | 'privacy';
+export type SceneId = 'workflows' | 'pose' | 'food' | 'rewards' | 'models' | 'limits' | 'compare' | 'privacy';
 
 export interface SceneDef {
   id: SceneId;
@@ -18,60 +20,76 @@ export interface SceneDef {
 
 export const SCENES: readonly SceneDef[] = [
   {
-    id: 'title',
-    label: 'Intro',
-    ms: 5000,
-    headline: 'Movement you can verify',
-    sub: 'A private exercise coach that shows its work',
-    notes: 'Verimove is an exercise coach built on three ideas: it explains every recommendation, safety comes from fixed rules and not guesses, and nothing ever leaves your device.',
+    id: 'workflows',
+    label: 'Workflows',
+    ms: 18000,
+    headline: 'Workflows',
+    sub: 'Your words in, a safe and explained plan out',
+    notes:
+      'People describe their health in plain words. Fixed, testable rules find the injury and the goal and show exactly what was understood, and an alarming answer stops the plan and sends you to a professional. Then the plan engine builds a week from the same answers every time, leaves out what loads the sore knee, and links each exercise to its source.',
   },
   {
-    id: 'words',
-    label: 'Your words',
-    ms: 9000,
-    headline: 'Tell it your way',
-    sub: 'Plain words in, transparent findings out',
-    notes: 'People describe their health in their own words. Fixed, testable rules pick out the injury, the symptom and the goal, and show exactly what was understood. Nothing is a black box.',
-  },
-  {
-    id: 'plan',
-    label: 'Safe plan',
-    ms: 9000,
-    headline: 'A plan that explains itself',
-    sub: 'Deterministic, safety-first, linked to guidance',
-    notes: 'The plan engine is deterministic: the same answers always give the same plan. Exercises that load the sore knee are left out, and each recommendation links to the public-health guidance behind it.',
-  },
-  {
-    id: 'camera',
-    label: 'Camera',
+    id: 'pose',
+    label: 'Pose tracking',
     ms: 12000,
-    headline: 'Camera counting for every exercise',
-    sub: 'On-device pose tracking, hands-free',
-    notes: 'An on-device pose model counts reps, times holds and spots movement for every exercise in the library. A five-second countdown means you never walk back to the device, and a status line always says whether it is counting. The movement here is simulated; the live camera works the same way.',
-  },
-  {
-    id: 'rewards',
-    label: 'Rewards',
-    ms: 8000,
-    headline: 'Earn tokens, play for fun',
-    sub: 'Rewards for finishing workouts, never for overdoing it',
-    notes: 'Finished workouts earn tokens, capped to the plan so there is no reason to overtrain. Tokens buy relaxing mini games that are not exercise, and a garden grows with weekly consistency.',
+    headline: 'Pose tracking',
+    sub: 'On-device body tracking counts every exercise, hands-free',
+    notes:
+      'An on-device pose model finds 33 body points in every video frame, and joint angles become reps, holds and movement time. A five-second countdown means you never walk back to the device, and a status line always says whether it is counting. The movement here is simulated; the live camera works the same way and the video never leaves the device.',
   },
   {
     id: 'food',
     label: 'Nutrition',
     ms: 10000,
-    headline: 'Snap a meal',
-    sub: 'Two open-source models, running on the device',
-    notes: 'A photo of a plate is read on the device by two open-source models. Each food is found, the amount is estimated from the picture, and the daily-value bars fill. If it gets something wrong, you label it and it learns, on the device.',
+    headline: 'Nutrition',
+    sub: 'Photo in, plate totals out, read on the device',
+    notes:
+      'A photo of a plate is read on the device by two open-source models working together. Each food is found, the amount is estimated from the picture, and the daily-value bars fill. Amounts are estimates, and if it gets something wrong you label it once and it learns, on the device.',
+  },
+  {
+    id: 'rewards',
+    label: 'Gamification',
+    ms: 8000,
+    headline: 'Gamification',
+    sub: 'Rewards for finishing workouts, never for overdoing it',
+    notes:
+      'Finished workouts earn tokens, capped to the plan so there is no reason to overtrain, and stopping early earns nothing. Tokens buy relaxing mini games that are not exercise, and a garden grows with weekly consistency.',
+  },
+  {
+    id: 'models',
+    label: 'AI models',
+    ms: 12000,
+    headline: 'AI models & use',
+    sub: 'Four open-source parts, all running in the page',
+    notes:
+      'The camera feed goes to MediaPipe Pose Landmarker for body points. A meal photo goes to CLIP, which matches over 300 foods, and to an EfficientNet-B0 trained on Food-101, whose votes are combined. ONNX Runtime Web runs both food models in the browser. We trained none of them; the safety rules and the plan engine are ordinary tested code, not AI.',
+  },
+  {
+    id: 'limits',
+    label: 'Limits & refs',
+    ms: 10000,
+    headline: 'Limits & references',
+    sub: 'What this does not do yet, and where the evidence comes from',
+    notes:
+      'We are upfront about the limits: it is not yet validated on real people, food amounts are estimates, it has not been reviewed by a clinician, and it is general fitness guidance, not medical advice. The models and the exercise guidance come from published work, listed here and in the app.',
+  },
+  {
+    id: 'compare',
+    label: 'Comparison',
+    ms: 10000,
+    headline: 'Comparison',
+    sub: 'Verimove against a typical general exercise app',
+    notes:
+      'This is a general comparison of common app features, not a test of any named product. The differences are that every pick is explained, safety rules run before any plan, camera counting covers every exercise, and meal photos and privacy need no account or upload.',
   },
   {
     id: 'privacy',
-    label: 'Private',
-    ms: 7000,
-    headline: 'Private by design',
+    label: 'Privacy',
+    ms: 10000,
+    headline: 'Privacy',
     sub: 'No account. No uploads. Works offline.',
-    notes: 'No account, no server, no uploads. The security policy blocks every outside connection, and the whole app works offline. Every recommendation is linked to evidence or labelled as a product heuristic. Thank you.',
+    notes:
+      'No account, no server, no uploads. The security policy blocks every outside connection, and the whole app works offline. Every recommendation is linked to evidence or labelled as a product heuristic. Thank you.',
   },
 ];
 

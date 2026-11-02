@@ -117,7 +117,7 @@ export function WelcomePage() {
           <a href="#example">Example</a>
           <a href="#privacy">Privacy</a>
           <Link to="/evidence">Evidence</Link>
-          <Link to="/demo">1-minute demo</Link>
+          <Link to="/demo">90-second demo</Link>
         </nav>
         <Link to="/onboarding" className="btn btn-primary btn-sm">
           Get started
@@ -148,7 +148,7 @@ export function WelcomePage() {
                 See an example plan
               </a>
               <Link className="btn btn-ghost btn-lg" to="/demo">
-                <Icon name="play" size={16} /> Watch the 1-minute demo
+                <Icon name="play" size={16} /> Watch the 90-second demo
               </Link>
             </div>
             <ul className="hero-trust" aria-label="Highlights">

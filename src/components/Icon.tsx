@@ -82,7 +82,7 @@ export function LogoMark({ size = 30 }: { size?: number }) {
     <span className="brand-mark" style={{ width: size, height: size }} aria-hidden="true">
       <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
         <path d="M5 17c3-1.2 6-1.4 9-.6M4 24c2.4-.8 4.8-.9 7.2-.3" stroke="#fff" strokeOpacity="0.55" strokeWidth="2.6" strokeLinecap="round" />
-        <path d="M13 26.5 20 34l15.5-17" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M13 28H16L21 13 26 28 31 39 36 28H41" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
         <circle cx="37" cy="8.5" r="4.8" fill="#ff7a2f" />
         <path d="M24.5 12.5c1.6-.9 3.2-1.2 4.8-1" stroke="#fff" strokeOpacity="0.55" strokeWidth="2.4" strokeLinecap="round" />
       </svg>

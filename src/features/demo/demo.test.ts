@@ -3,9 +3,14 @@ import { SCENES, TOTAL_MS, formatClock, sceneAt, sceneStart } from './script';
 import { buildDemo } from './data';
 
 describe('demo timeline', () => {
-  it('runs for exactly one minute', () => {
-    expect(TOTAL_MS).toBe(60_000);
-    expect(SCENES.reduce((a, s) => a + s.ms, 0)).toBe(60_000);
+  it('runs for exactly 90 seconds', () => {
+    expect(TOTAL_MS).toBe(90_000);
+    expect(SCENES.reduce((a, s) => a + s.ms, 0)).toBe(90_000);
+  });
+
+  it('follows the presentation order', () => {
+    expect(SCENES.map((s) => s.id)).toEqual(['workflows', 'pose', 'food', 'rewards', 'models', 'limits', 'compare', 'privacy']);
+    expect(SCENES.map((s) => s.label)).toEqual(['Workflows', 'Pose tracking', 'Nutrition', 'Gamification', 'AI models', 'Limits & refs', 'Comparison', 'Privacy']);
   });
 
   it('every scene has notes, a headline and a sensible length', () => {
@@ -19,18 +24,18 @@ describe('demo timeline', () => {
 
   it('maps time to scenes and back', () => {
     expect(sceneAt(0).index).toBe(0);
-    expect(sceneAt(4999).index).toBe(0);
-    expect(sceneAt(5000).index).toBe(1);
-    expect(sceneAt(59_999).index).toBe(SCENES.length - 1);
-    expect(sceneAt(60_000).done).toBe(true);
+    expect(sceneAt(17_999).index).toBe(0);
+    expect(sceneAt(18_000).index).toBe(1);
+    expect(sceneAt(89_999).index).toBe(SCENES.length - 1);
+    expect(sceneAt(90_000).done).toBe(true);
     expect(sceneAt(-5).elapsed).toBe(0);
     SCENES.forEach((_, i) => expect(sceneAt(sceneStart(i)).index).toBe(i));
-    expect(sceneAt(sceneStart(3) + SCENES[3]!.ms / 2).progress).toBeCloseTo(0.5, 5);
+    expect(sceneAt(sceneStart(1) + SCENES[1]!.ms / 2).progress).toBeCloseTo(0.5, 5);
   });
 
   it('formats the clock', () => {
     expect(formatClock(0)).toBe('0:00');
-    expect(formatClock(61_000)).toBe('1:00'); // clamped to the total
+    expect(formatClock(95_000)).toBe('1:30'); // clamped to the total
     expect(formatClock(42_400)).toBe('0:42');
   });
 });

@@ -9,3 +9,5 @@ public/mediapipe/wasm/
 public/models/food/*.onnx
 public/ort/
 .vitest/
+/poster/
+*.tsbuildinfo

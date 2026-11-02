@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generatePlan, planEvidenceIds, validateProfile, estimateSeconds, tryability, buildTrySession, TRY_SESSION_PREFIX } from './engine';
 import { makeProfile } from '../profile';
+import { detectorKind } from '../../pose/detectors';
 import { getExercise, EXERCISES } from '../exercises/library';
 import type { Plan, PlannedSession, Profile } from '../types';
 
@@ -31,6 +32,17 @@ describe('plan engine — time limits', () => {
     const s = sessions(plan)[0]!;
     expect(s.items.some((i) => i.block === 'main')).toBe(true);
     expect(s.notes.join(' ')).toMatch(/short session/i);
+  });
+
+  it('prescribes camera-counted warm-ups as reps with a rep counter', () => {
+    const plan = okPlan(makeProfile({ minutesPerSession: 30 }));
+    const warm = sessions(plan)[0]!.items.filter((i) => i.block === 'warmup');
+    expect(warm.length).toBeGreaterThan(0);
+    for (const i of warm) {
+      const ex = getExercise(i.exerciseId)!;
+      expect(i.prescription.kind, ex.id).toBe('reps');
+      expect(ex.camera.supported && detectorKind(ex.camera.counterId), ex.id).toBe('rep');
+    }
   });
 
   it('uses a full ≥6-minute warm-up budget when time allows (NHS)', () => {

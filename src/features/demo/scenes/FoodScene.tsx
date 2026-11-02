@@ -9,7 +9,7 @@ const PREPARED = [
   { foodId: 'french_fries', servings: 0.5, p: 0.36 },
 ];
 const ZERO: Nutrients = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-/** After this long in the scene, use the prepared result so the one-minute timeline never stalls. */
+/** After this long in the scene, use the prepared result so the timeline never stalls. */
 const GIVE_UP_MS = 3600;
 
 export function FoodScene({ elapsed, plate, models }: SceneProps & { plate: PlateItem[] | null; models: ModelState }) {

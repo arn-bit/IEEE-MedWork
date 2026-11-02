@@ -155,7 +155,7 @@ test.describe('workout session', () => {
     await page.getByText('I feel fine').click();
     await page.getByRole('button', { name: 'Track manually' }).click();
 
-    // First item is a timed warm-up: start, pause, verify it holds, resume.
+    // First item is a counted warm-up: start, pause, verify it holds, resume.
     await page.getByRole('button', { name: /Start (set|timer)/ }).click();
     const pauseBtn = page.getByRole('button', { name: 'Pause' });
     await pauseBtn.click();
@@ -164,7 +164,6 @@ test.describe('workout session', () => {
     expect(await page.locator('.big-count').textContent()).toBe(t1);
     await expect(page.getByText('Paused. Timers and camera counting are stopped.')).toBeVisible();
     await page.getByRole('button', { name: 'Resume' }).click();
-    await page.getByRole('button', { name: 'Finish early' }).click();
 
     // Move through items until a rep-based set appears.
     for (let i = 0; i < 6 && !(await page.getByRole('button', { name: 'Add one rep' }).isVisible()); i++) {

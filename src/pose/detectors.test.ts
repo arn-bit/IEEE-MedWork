@@ -42,6 +42,7 @@ describe('new rep counters count full cycles of their own movement', () => {
   };
   const cases: { id: RepCounterId; frames: Point[][]; expected: number; note?: string }[] = [
     { id: 'seated_march', frames: sweep({}, {}, undefined, (f) => (f[LM.leftKnee] = { ...f[LM.leftKnee]!, y: f[LM.leftHip]!.y - 0.05 })), expected: 3 },
+    { id: 'heel_dig', frames: sweep({}, {}, undefined, lift(31, -0.03)), expected: 3 },
     { id: 'shoulder_roll', frames: sweep({}, {}, undefined, (f) => ([LM.leftShoulder, LM.rightShoulder].forEach((i) => (f[i] = { ...f[i]!, y: f[i]!.y - 0.03 })))), expected: 3 },
     { id: 'calf_raise', frames: sweep({}, {}, undefined, (f) => ([29, 30].forEach((i) => (f[i] = { ...f[i]!, y: f[i]!.y - 0.03 })))), expected: 3 },
     { id: 'side_leg_lift', frames: sweep({}, {}, undefined, (f) => lift(LM.leftAnkle, -0.04, 0.12)(f)), expected: 3 },
